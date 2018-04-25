@@ -22,7 +22,8 @@
 
 typedef struct
 {
-
+        int nodeID;
+        int requestID;
 
 } ticket;
 
@@ -41,41 +42,41 @@ void accessCS (int type);
 void replyAllPending ();
 
 int main(int argc, char *argv[]){
-    int countReply;
-    int maxPetition;
-    int nodeID;
-    int totalNodes;// numero total de nodos en el sistema
-    ticket ticket;
-    doStuff(0);
-    setWantTo(1);
-    createTicket( maxPetition,  nodeID);
-    sendRequest(ticket);
-    while (countReply<totalNodes) {
-        receiveReply();
-        countReply++;
-    }
-    accessCS(0);
-    setWantTo(0);
-    replyAllPending();
+        int countReply;
+        int maxPetition;
+        int nodeID;
+        int totalNodes;// numero total de nodos en el sistema
+        ticket ticket;
+        doStuff(0);
+        setWantTo(1);
+        createTicket( maxPetition,  nodeID);
+        sendRequest(ticket);
+        while (countReply<totalNodes) {
+                receiveReply();
+                countReply++;
+        }
+        accessCS(0);
+        setWantTo(0);
+        replyAllPending();
 }
 
 
 void doStuff (int type){
 //creo el buzon
-    key_t clave;
-    msgsz = sizeof (struct ticket) - sizeof (long int);
-    clave = ftok (FILEKEY, KEY);
-    if (clave == (key_t)-1) {
-        printf("\nERROR clave\n");
-        exit (-1);
+        key_t clave;
+        msgsz = sizeof (struct ticket) - sizeof (long int);
+        clave = ftok (FILEKEY, KEY);
+        if (clave == (key_t)-1) {
+                printf("\nERROR clave\n");
+                exit (-1);
 
-    }else{
-        int buzon = msgget(clave, 0777 | IPC_CREAT);
-        if (buzon == -1) {
-            printf("\nERROR buzon\n");
-            exit (-1);
+        }else{
+                int buzon = msgget(clave, 0777 | IPC_CREAT);
+                if (buzon == -1) {
+                        printf("\nERROR buzon\n");
+                        exit (-1);
+                }
         }
-    }
 }
 
 
@@ -84,8 +85,10 @@ void setWantTo (int value){
 }
 
 ticket createTicket (int maxPetition, int nodeID){
-
-
+        sem_wait(&semMaxPetition);
+        maxPetition=maxPetition++;
+        struct ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
+        sem_post(&semMaxPetition);
 }
 
 void sendRequest (ticket ticket){
