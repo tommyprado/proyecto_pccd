@@ -1,9 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <semaphore.h>
+#include <bits/fcntl-linux.h>
 
 #define KEY 1500
 #define FILEKEY "/bin/ls"
+
+#define SEM_MAX_PETITION "semMaxPetition"
 
 
 typedef struct
@@ -32,7 +35,7 @@ void initNode(int argc, char *argv[]);
 void printWrongUsageError();
 
 int nodeID, totalNodes;
-sem_t semMaxPetition;
+sem_t *semMaxPetition;
 
 int main(int argc, char *argv[]){
     initNode(argc, argv);
@@ -55,6 +58,7 @@ int main(int argc, char *argv[]){
 }
 
 void initNode(int argc, char *argv[]) {
+    printf("Queremos que esto rompa");
     if (argc != 3) {
         printWrongUsageError();
         exit(0);
@@ -64,7 +68,10 @@ void initNode(int argc, char *argv[]) {
     if (nodeID > totalNodes) {
         printWrongUsageError();
     }
-
+    if ((semMaxPetition = sem_open("mysemaphore", O_CREAT, 0644, 1)) == SEM_FAILED) {
+        perror("semaphore initilization");
+        exit(1);
+    }
 
 }
 
@@ -83,10 +90,10 @@ void setWantTo (int value){
 }
 
 ticket createTicket (int maxPetition, int nodeID){
-        sem_wait(&semMaxPetition);
+        sem_wait(semMaxPetition);
         maxPetition=maxPetition++;
         struct ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
-        sem_post(&semMaxPetition);
+        sem_post(semMaxPetition);
 }
 
 void sendRequest (ticket ticket){
