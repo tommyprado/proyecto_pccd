@@ -12,6 +12,7 @@
 #define SEM_WANT_TO_NAME "semWantTo"
 #define NODE_INITIAL_KEY 10000
 #define TYPE_REQUEST 1
+#define TYPE_REPLY 2
 
 typedef struct
 {
@@ -158,11 +159,11 @@ void sendRequests(ticket ticket){
 }
 
 void receiveReply (){
-//tengo un buzon y recibo de cualquier nodo algo
-
-
+    messageBuff message;
+    msgrcv(NODE_INITIAL_KEY + nodeID, &message, sizeof(struct ticket), TYPE_REPLY, 0);
 
 }
+
 
 void accessCS (int type){
     if(type == 0){
