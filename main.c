@@ -3,6 +3,7 @@
 #include <semaphore.h>
 #include <fcntl.h>
 #include <zconf.h>
+#include <sys/msg.h>
 
 #define KEY 1500
 #define FILEKEY "/bin/ls"
@@ -13,8 +14,8 @@
 
 typedef struct
 {
-        int nodeID;
-        int requestID;
+    int nodeID;
+    int requestID;
 
 } ticket;
 
@@ -76,12 +77,25 @@ void initNode(int argc, char *argv[]) {
 
     initReceptor();
 
-}
 
 void initReceptor() {
     
 }
 
+
+    //yo
+
+    int clave= nodeID + 10000;
+    int buzon = msgget(clave, 0644 | IPC_CREAT);
+    if (buzon == -1)
+    {
+        printf("Error buzon\n");
+        exit (-1);
+    }
+
+    //hasta aqui
+
+}
 
 void printWrongUsageError() {
     printf("Wrong argument number\nUsage: ./main nodeID totalNodes (nodeID <= totalNodes)");
@@ -98,28 +112,30 @@ void setWantTo (int value){
 }
 
 ticket createTicket (int maxPetition, int nodeID){
-        sem_wait(semMaxPetition);
-        maxPetition=maxPetition++;
-        struct ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
-        sem_post(semMaxPetition);
+    sem_wait(semMaxPetition);
+    maxPetition=maxPetition++;
+    ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
+    sem_post(semMaxPetition);
 }
 
 void sendRequest (ticket ticket){
+//enviar mensajes a todos los nodos (totalNodes esta global), hacer un for para recorrer todos los buzones van a tener la id
+    // 1001 al 1005 si fueran 5 nodos por ejemplo
 
 }
 
-void receiveReply (){// no deberia devolver 1 si alguien responde ¿?
+void receiveReply (){
 
 }
 
 void accessCS (int type){
-        if(type == 0){
-                printf("\nEsperando salto de linea...\n");
-                getchar(); //esperando salto de linea
-                return;
-        }
-        usleep(100*1000);
-        return;  
+    if(type == 0){
+        printf("\nEsperando salto de linea...\n");
+        getchar(); //esperando salto de linea
+        return;
+    }
+    usleep(100*1000);
+    return;
 }
 
 
