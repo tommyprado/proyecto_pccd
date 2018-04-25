@@ -3,6 +3,7 @@
 #include <semaphore.h>
 #include <fcntl.h>
 #include <zconf.h>
+#include <sys/msg.h>
 
 #define KEY 1500
 #define FILEKEY "/bin/ls"
@@ -12,8 +13,8 @@
 
 typedef struct
 {
-        int nodeID;
-        int requestID;
+    int nodeID;
+    int requestID;
 
 } ticket;
 
@@ -70,8 +71,20 @@ void initNode(int argc, char *argv[]) {
     }
     semMaxPetition = sem_open(SEM_MAX_PETITION_NAME, O_CREAT, 0644, 3);
 
-}
 
+
+
+    //yo
+
+    int clave= nodeID + 10000;
+    int buzon = msgget(clave, 0644 | IPC_CREAT);
+    if (buzon == -1)
+    {
+        printf("Error buzon\n");
+        exit (-1);
+    }
+
+    //hasta aqui
 
 }
 
@@ -90,10 +103,10 @@ void setWantTo (int value){
 }
 
 ticket createTicket (int maxPetition, int nodeID){
-        sem_wait(semMaxPetition);
-        maxPetition=maxPetition++;
-        ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
-        sem_post(&semMaxPetition);
+    sem_wait(semMaxPetition);
+    maxPetition=maxPetition++;
+    ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
+    sem_post(semMaxPetition);
 }
 
 void sendRequest (ticket ticket){
@@ -107,13 +120,13 @@ void receiveReply (){
 }
 
 void accessCS (int type){
-        if(type == 0){
-                printf("\nEsperando salto de linea...\n");
-                getchar(); //esperando salto de linea
-                return;
-        }
-        usleep(100*1000);
-        return;  
+    if(type == 0){
+        printf("\nEsperando salto de linea...\n");
+        getchar(); //esperando salto de linea
+        return;
+    }
+    usleep(100*1000);
+    return;
 }
 
 
