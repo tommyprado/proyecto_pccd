@@ -3,4 +3,4 @@ project(Proyecto C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(Proyecto launcher.c pagos.c)
+add_executable(Proyecto launcher.c main.c receptor.c)
