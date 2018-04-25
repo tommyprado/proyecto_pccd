@@ -39,7 +39,6 @@ int main(int argc, char *argv[]){
     int countReply;
     int maxPetition;
     int nodeID;
-    int totalNodes;
     ticket ticket;
     doStuff(0);
     setWantTo(1);
@@ -85,15 +84,17 @@ void setWantTo (int value){
 ticket createTicket (int maxPetition, int nodeID){
         sem_wait(&semMaxPetition);
         maxPetition=maxPetition++;
-        struct ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
+        ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
         sem_post(&semMaxPetition);
 }
 
 void sendRequest (ticket ticket){
+//enviar mensajes a todos los nodos (totalNodes esta global), hacer un for para recorrer todos los buzones van a tener la id
+    // 1001 al 1005 si fueran 5 nodos por ejemplo
 
 }
 
-void receiveReply (){// no deberia devolver 1 si alguien responde ¿?
+void receiveReply (){
 
 }
 
