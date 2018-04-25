@@ -42,6 +42,8 @@ void initReceptor();
 int nodeID, totalNodes, maxPetition;
 sem_t* semMaxPetition, *semWantTo;
 
+int IDColaMensajes;
+
 int main(int argc, char *argv[]){
     initNode(argc, argv);
     int countReply;
@@ -124,9 +126,16 @@ ticket createTicket (int nodeID){
 }
 
 void sendRequest (ticket ticket){
-//enviar mensajes a todos los nodos (totalNodes esta global), hacer un for para recorrer todos los buzones van a tener la id
-    // 1001 al 1005 si fueran 5 nodos por ejemplo
-
+    for(int mailboxDestiny = 100001; mailboxDestiny < 100000+totalNodes; mailboxDestiny++){
+        printf("Enviamos el ticket al nodo %i\n", nodoDestino);
+        if(!mailboxDestiny == 10000+nodeID){
+            int msg = msgsnd(mailboxDestiny, &ticket, (sizeof(ticket) - sizeof(long)), 0);
+            if(msg == -1) {
+                printf("Error al enviar el ticket\n");
+                exit(1);
+            }
+        }
+    }
 }
 
 void receiveReply (){
