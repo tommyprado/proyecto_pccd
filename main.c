@@ -98,7 +98,13 @@ void receiveReply (){// no deberia devolver 1 si alguien responde ¿?
 }
 
 void accessCS (int type){
-
+        if(type == 0){
+                printf("\nEsperando salto de linea...\n");
+                getchar(); //esperando salto de linea
+                return;
+        }
+        sleep(100*1000);
+        return; 
 }
 
 
