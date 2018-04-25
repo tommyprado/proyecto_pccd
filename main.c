@@ -23,7 +23,7 @@ void setWantTo (int value);
 
 void doStuff (int type);
 
-ticket createTicket (int maxPetition, int nodeID);
+ticket createTicket (int nodeID);
 
 void sendRequest (ticket ticket);
 
@@ -39,7 +39,7 @@ void printWrongUsageError();
 
 void initReceptor();
 
-int nodeID, totalNodes;
+int nodeID, totalNodes, maxPetition;
 sem_t* semMaxPetition, *semWantTo;
 
 int main(int argc, char *argv[]){
@@ -51,9 +51,9 @@ int main(int argc, char *argv[]){
     ticket ticket;
     doStuff(0);
     setWantTo(1);
-    createTicket( maxPetition,  nodeID);
+    createTicket(nodeID);
     sendRequest(ticket);
-    while (countReply<totalNodes) {
+    while (countReply < totalNodes) {
         receiveReply();
         countReply++;
     }
@@ -72,18 +72,15 @@ void initNode(int argc, char *argv[]) {
     if (nodeID > totalNodes) {
         printWrongUsageError();
     }
-    semMaxPetition = sem_open(SEM_MAX_PETITION_NAME, O_CREAT, 0644, 1);
-    semWantTo = sem_open(SEM_WANT_TO_NAME, O_CREAT, 0644, 1);
+
+    char maxPetitionString[50];
+    char wantToString[50];
+    sprintf(maxPetitionString, "%s_%d",SEM_MAX_PETITION_NAME, nodeID);
+    sprintf(wantToString, "%s_%d",SEM_WANT_TO_NAME, nodeID);
+    semMaxPetition = sem_open(maxPetitionString, O_CREAT, 0644, 1);
+    semWantTo = sem_open(wantToString, O_CREAT, 0644, 1);
 
     initReceptor();
-
-
-void initReceptor() {
-    
-}
-
-
-    //yo
 
     int clave= nodeID + 10000;
     int buzon = msgget(clave, 0644 | IPC_CREAT);
@@ -92,10 +89,17 @@ void initReceptor() {
         printf("Error buzon\n");
         exit (-1);
     }
-
-    //hasta aqui
-
 }
+
+void initReceptor() {
+    int pid = fork();
+    char id[50];
+    sprintf(id, "%d", nodeID);
+    if (pid == 0) {
+        execl("./receptor", id);
+    }
+}
+
 
 void printWrongUsageError() {
     printf("Wrong argument number\nUsage: ./main nodeID totalNodes (nodeID <= totalNodes)");
@@ -111,11 +115,12 @@ void setWantTo (int value){
 
 }
 
-ticket createTicket (int maxPetition, int nodeID){
+ticket createTicket (int nodeID){
     sem_wait(semMaxPetition);
     maxPetition=maxPetition++;
     ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
     sem_post(semMaxPetition);
+    return myTicket;
 }
 
 void sendRequest (ticket ticket){
@@ -131,11 +136,10 @@ void receiveReply (){
 void accessCS (int type){
     if(type == 0){
         printf("\nEsperando salto de linea...\n");
-        getchar(); //esperando salto de linea
+        getchar();
         return;
     }
     usleep(100*1000);
-    return;
 }
 
 
