@@ -5,6 +5,8 @@
 #include <zconf.h>
 #include <sys/msg.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
 #define KEY 1500
 #define FILEKEY "/bin/ls"
 
@@ -53,82 +55,30 @@ void initMailBoxes();
 int nodeID, totalNodes, maxPetition;
 sem_t* semMaxPetition, *semWantTo;
 
-int IDColaMensajes;
-
 int main(int argc, char *argv[]){
     initNode(argc, argv);
-    int countReply;
-    int maxPetition;
-    int nodeID;
-    int totalNodes;
-    ticket ticket;
-    doStuff(0);
-    setWantTo(1);
-    createTicket(nodeID);
-    sendRequests(ticket);
-    while (countReply < totalNodes) {
-        receiveReply();
-        countReply++;
-    }
-    accessCS(0);
-    setWantTo(0);
-    replyAllPending();
-}
+    while (1) {
+        doStuff(0);
 
-void initNode(int argc, char *argv[]) {
-    if (argc != 3) {
-        printWrongUsageError();
-        exit(0);
-    }
-    nodeID = atoi(argv[1]);
-    totalNodes = atoi(argv[2]);
-    if (nodeID > totalNodes) {
-        printWrongUsageError();
-    }
+        setWantTo(1);
+        ticket ticket = createTicket(nodeID);
+        sendRequests(ticket);
+        int countReply = 0;
+        while (countReply < totalNodes) {
+            receiveReply();
+            countReply++;
+        }
 
-    initSemaphores();
-    initMailBoxes();
-    initReceptor();
-}
+        accessCS(0);
 
-void initMailBoxes() {
-    int key= nodeID + NODE_INITIAL_KEY;
-    int mailbox = msgget(key, 0644 | IPC_CREAT);
-    if (mailbox == -1)
-    {
-        printf("Error buzón\n");
-        exit (-1);
+        setWantTo(0);
+        replyAllPending();
     }
 }
-
-void initSemaphores() {
-    char maxPetitionString[50];
-    char wantToString[50];
-    sprintf(maxPetitionString, "%s_%d",SEM_MAX_PETITION_NAME, nodeID);
-    sprintf(wantToString, "%s_%d",SEM_WANT_TO_NAME, nodeID);
-    semMaxPetition = sem_open(maxPetitionString, O_CREAT, 0644, 1);
-    semWantTo = sem_open(wantToString, O_CREAT, 0644, 1);
-}
-
-void initReceptor() {
-    int pid = fork();
-    char id[50];
-    sprintf(id, "%d", nodeID);
-    if (pid == 0) {
-        execl("./receptor", id);
-    }
-}
-
-
-void printWrongUsageError() {
-    printf("Wrong arguments\nUsage: ./main nodeID totalNodes (nodeID <= totalNodes)");
-}
-
 
 void doStuff (int type){
 
 }
-
 
 void setWantTo (int value){
 
@@ -158,10 +108,10 @@ void sendRequests(ticket ticket){
     }
 }
 
+
 void receiveReply (){
     messageBuff message;
     msgrcv(NODE_INITIAL_KEY + nodeID, &message, sizeof(struct ticket), TYPE_REPLY, 0);
-
 }
 
 
@@ -178,3 +128,55 @@ void accessCS (int type){
 void replyAllPending (){
 
 }
+
+void initNode(int argc, char *argv[]) {
+    if (argc != 3) {
+        printWrongUsageError();
+        exit(0);
+    }
+    nodeID = atoi(argv[1]);
+    totalNodes = atoi(argv[2]);
+    if (nodeID > totalNodes) {
+        printWrongUsageError();
+    }
+
+    initSemaphores();
+    initMailBoxes();
+    initReceptor();
+}
+
+void initSemaphores() {
+    char maxPetitionString[50];
+    char wantToString[50];
+    sprintf(maxPetitionString, "%s_%d",SEM_MAX_PETITION_NAME, nodeID);
+    sprintf(wantToString, "%s_%d",SEM_WANT_TO_NAME, nodeID);
+    semMaxPetition = sem_open(maxPetitionString, O_CREAT, 0644, 1);
+    semWantTo = sem_open(wantToString, O_CREAT, 0644, 1);
+}
+
+void initReceptor() {
+    int pid = fork();
+    char id[50];
+    sprintf(id, "%d", nodeID);
+    if (pid == 0) {
+        execl("./receptor", id);
+    }
+}
+
+
+void initMailBoxes() {
+    int key= nodeID + NODE_INITIAL_KEY;
+    int mailbox = msgget(key, 0644 | IPC_CREAT);
+    if (mailbox == -1)
+    {
+        printf("Error buzón\n");
+        exit (-1);
+    }
+}
+
+
+void printWrongUsageError() {
+    printf("Wrong arguments\nUsage: ./main nodeID totalNodes (nodeID <= totalNodes)");
+}
+
+#pragma clang diagnostic pop
