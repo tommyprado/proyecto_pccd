@@ -8,6 +8,7 @@
 #define FILEKEY "/bin/ls"
 
 #define SEM_MAX_PETITION_NAME "semMaxPetition"
+#define SEM_WANT_TO_NAME "semWantTo"
 
 
 typedef struct
@@ -35,8 +36,10 @@ void initNode(int argc, char *argv[]);
 
 void printWrongUsageError();
 
+void initReceptor();
+
 int nodeID, totalNodes;
-sem_t* semMaxPetition;
+sem_t* semMaxPetition, *semWantTo;
 
 int main(int argc, char *argv[]){
     initNode(argc, argv);
@@ -68,10 +71,16 @@ void initNode(int argc, char *argv[]) {
     if (nodeID > totalNodes) {
         printWrongUsageError();
     }
-    semMaxPetition = sem_open(SEM_MAX_PETITION_NAME, O_CREAT, 0644, 3);
+    semMaxPetition = sem_open(SEM_MAX_PETITION_NAME, O_CREAT, 0644, 1);
+    semWantTo = sem_open(SEM_WANT_TO_NAME, O_CREAT, 0644, 1);
+
+    initReceptor();
 
 }
 
+void initReceptor() {
+    
+}
 
 
 void printWrongUsageError() {
