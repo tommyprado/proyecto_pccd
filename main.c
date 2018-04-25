@@ -139,6 +139,9 @@ void sendRequest (ticket ticket){
 }
 
 void receiveReply (){
+//tengo un buzon y recibo de cualquier nodo algo
+
+
 
 }
 
