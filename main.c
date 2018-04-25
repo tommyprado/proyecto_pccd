@@ -1,20 +1,6 @@
-#include <pthread.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <semaphore.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <signal.h>
-#include <time.h>
-#include <sys/msg.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <signal.h>
 
 #define KEY 1500
 #define FILEKEY "/bin/ls"
@@ -40,11 +26,19 @@ void accessCS (int type);
 
 void replyAllPending ();
 
+void initNode(int argc, char *argv[]);
+
+void printWrongUsageError();
+
+int nodeID, totalNodes;
+sem_t semMaxPetition;
+
 int main(int argc, char *argv[]){
+    initNode(argc, argv);
     int countReply;
     int maxPetition;
     int nodeID;
-    int totalNodes;// numero total de nodos en el sistema
+    int totalNodes;
     ticket ticket;
     doStuff(0);
     setWantTo(1);
@@ -59,23 +53,27 @@ int main(int argc, char *argv[]){
     replyAllPending();
 }
 
+void initNode(int argc, char *argv[]) {
+    if (argc != 3) {
+        printWrongUsageError();
+        exit(0);
+    }
+    nodeID = atoi(argv[1]);
+    totalNodes = atoi(argv[2]);
+    if (nodeID > totalNodes) {
+        printWrongUsageError();
+    }
+
+
+}
+
+void printWrongUsageError() {
+    printf("Wrong argument number\nUsage: ./main nodeID totalNodes (nodeID <= totalNodes)");
+}
+
 
 void doStuff (int type){
-//creo el buzon
-    key_t clave;
-    msgsz = sizeof (struct ticket) - sizeof (long int);
-    clave = ftok (FILEKEY, KEY);
-    if (clave == (key_t)-1) {
-        printf("\nERROR clave\n");
-        exit (-1);
 
-    }else{
-        int buzon = msgget(clave, 0777 | IPC_CREAT);
-        if (buzon == -1) {
-            printf("\nERROR buzon\n");
-            exit (-1);
-        }
-    }
 }
 
 
