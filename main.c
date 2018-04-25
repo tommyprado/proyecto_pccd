@@ -127,10 +127,20 @@ void printWrongUsageError() {
 
 void doStuff (int type){
 
+    if(type == 0){
+        printf("\nEsperando salto de linea...\n");
+        getchar();
+        return;
+    }
+    usleep(100*1000);
+
 }
 
 
 void setWantTo (int value){
+    sem_wait(semWantTo);
+    semWantTo=1;
+    sem_post(semWantTo);
 
 }
 

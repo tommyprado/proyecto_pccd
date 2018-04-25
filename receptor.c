@@ -6,15 +6,23 @@
 #define SEM_MAX_PETITION_NAME "semMaxPetition"
 #define SEM_WANT_TO_NAME "semWantTo"
 #define NODE_INITIAL_KEY 10000
+#define TYPE_REQUEST 1
+#define TYPE_REPLY 2
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
+
 typedef struct
 {
     int requestId;
     int nodeId;
 
 } ticket;
+
+typedef struct {
+    long    mtype;
+    ticket  ticket;
+} messageBuff;
 
 ticket receiveRequest ();
 
@@ -24,7 +32,7 @@ void protectWantTo ();
 
 void unprotectWantTo ();
 
-void sendReply (int nodeId);
+void sendReply (ticket nodeId);
 
 void saveRequest (ticket ticket);
 
@@ -54,7 +62,7 @@ int main(int argc, char *argv[]){
 
         if(wantTo && (biggestTicket.requestId < originTicket.requestId) ) {
             unprotectWantTo();
-            sendReply(biggestTicket.nodeId);
+            sendReply(biggestTicket);
         }else{
             saveRequest(biggestTicket);
             unprotectWantTo();
@@ -98,24 +106,50 @@ void initSemaphores() {
 
 ticket receiveRequest (){
 
+    messageBuff message;
+    msgrcv(NODE_INITIAL_KEY + nodeID, &message, sizeof(struct ticket), TYPE_REQUEST, 0);
+
 }
 
 void updateMaxPetitionID (int petitionId){
+
+    sem_wait(semMaxPetition);
+
+    if(petitionId>maxPetition){
+        maxPetition=petitionId;
+    }
+
+    sem_post(semMaxPetition);
+
+
 }
 
 void protectWantTo (){
+    sem_wait(semWantTo);
 
 }
 
 void saveRequest (ticket ticket){
+//añadir ticket a una lista
 
 }
 
 void unprotectWantTo (){
+    sem_post(semWantTo);
+}
+
+void sendReply (ticket ticket){
+
+
+                messageBuff message;
+                message.mtype = TYPE_REPLY;
+                message.ticket = ticket;
+                int msg = msgsnd(ticket.nodeId+NODE_INITIAL_KEY, &message, sizeof(ticket), 0);
+                if(msg == -1) {
+                    printf("Error al enviar el ticket\n");
+                    exit(1);
+                }
 
 }
 
-void sendReply (int nodeId){
-
-}
 #pragma clang diagnostic pop
