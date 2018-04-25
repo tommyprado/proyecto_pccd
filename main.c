@@ -10,7 +10,8 @@
 
 #define SEM_MAX_PETITION_NAME "semMaxPetition"
 #define SEM_WANT_TO_NAME "semWantTo"
-
+#define NODE_INITIAL_KEY 10000
+#define TYPE_REQUEST 1
 
 typedef struct
 {
@@ -19,13 +20,18 @@ typedef struct
 
 } ticket;
 
+typedef struct {
+    long    mtype;
+    ticket  ticket;
+} messageBuff;
+
 void setWantTo (int value);
 
 void doStuff (int type);
 
 ticket createTicket (int nodeID);
 
-void sendRequest (ticket ticket);
+void sendRequests(ticket ticket);
 
 void receiveReply ();
 
@@ -38,6 +44,10 @@ void initNode(int argc, char *argv[]);
 void printWrongUsageError();
 
 void initReceptor();
+
+void initSemaphores();
+
+void initMailBoxes();
 
 int nodeID, totalNodes, maxPetition;
 sem_t* semMaxPetition, *semWantTo;
@@ -54,7 +64,7 @@ int main(int argc, char *argv[]){
     doStuff(0);
     setWantTo(1);
     createTicket(nodeID);
-    sendRequest(ticket);
+    sendRequests(ticket);
     while (countReply < totalNodes) {
         receiveReply();
         countReply++;
@@ -75,22 +85,28 @@ void initNode(int argc, char *argv[]) {
         printWrongUsageError();
     }
 
+    initSemaphores();
+    initMailBoxes();
+    initReceptor();
+}
+
+void initMailBoxes() {
+    int key= nodeID + NODE_INITIAL_KEY;
+    int mailbox = msgget(key, 0644 | IPC_CREAT);
+    if (mailbox == -1)
+    {
+        printf("Error buzón\n");
+        exit (-1);
+    }
+}
+
+void initSemaphores() {
     char maxPetitionString[50];
     char wantToString[50];
     sprintf(maxPetitionString, "%s_%d",SEM_MAX_PETITION_NAME, nodeID);
     sprintf(wantToString, "%s_%d",SEM_WANT_TO_NAME, nodeID);
     semMaxPetition = sem_open(maxPetitionString, O_CREAT, 0644, 1);
     semWantTo = sem_open(wantToString, O_CREAT, 0644, 1);
-
-    initReceptor();
-
-    int clave= nodeID + 10000;
-    int buzon = msgget(clave, 0644 | IPC_CREAT);
-    if (buzon == -1)
-    {
-        printf("Error buzon\n");
-        exit (-1);
-    }
 }
 
 void initReceptor() {
@@ -104,7 +120,7 @@ void initReceptor() {
 
 
 void printWrongUsageError() {
-    printf("Wrong argument number\nUsage: ./main nodeID totalNodes (nodeID <= totalNodes)");
+    printf("Wrong arguments\nUsage: ./main nodeID totalNodes (nodeID <= totalNodes)");
 }
 
 
@@ -125,11 +141,14 @@ ticket createTicket (int nodeID){
     return myTicket;
 }
 
-void sendRequest (ticket ticket){
-    for(int mailboxDestiny = 100001; mailboxDestiny < 100000+totalNodes; mailboxDestiny++){
-        printf("Enviamos el ticket al nodo %i\n", nodoDestino);
-        if(!mailboxDestiny == 10000+nodeID){
-            int msg = msgsnd(mailboxDestiny, &ticket, (sizeof(ticket) - sizeof(long)), 0);
+void sendRequests(ticket ticket){
+    for(int node = 1; node < totalNodes; node++){
+        printf("Enviamos el ticket al nodo %i\n", node);
+        if(!node == nodeID){
+            messageBuff message;
+            message.mtype = TYPE_REQUEST;
+            message.ticket = ticket;
+            int msg = msgsnd(NODE_INITIAL_KEY + node, &message, sizeof(ticket), 0);
             if(msg == -1) {
                 printf("Error al enviar el ticket\n");
                 exit(1);
