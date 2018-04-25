@@ -1,9 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <semaphore.h>
+#include <fcntl.h>
+#include <zconf.h>
 
 #define KEY 1500
 #define FILEKEY "/bin/ls"
+
+#define SEM_MAX_PETITION_NAME "semMaxPetition"
 
 
 typedef struct
@@ -32,13 +36,14 @@ void initNode(int argc, char *argv[]);
 void printWrongUsageError();
 
 int nodeID, totalNodes;
-sem_t semMaxPetition;
+sem_t* semMaxPetition;
 
 int main(int argc, char *argv[]){
     initNode(argc, argv);
     int countReply;
     int maxPetition;
     int nodeID;
+    int totalNodes;
     ticket ticket;
     doStuff(0);
     setWantTo(1);
@@ -63,6 +68,9 @@ void initNode(int argc, char *argv[]) {
     if (nodeID > totalNodes) {
         printWrongUsageError();
     }
+    semMaxPetition = sem_open(SEM_MAX_PETITION_NAME, O_CREAT, 0644, 3);
+
+}
 
 
 }
@@ -82,7 +90,7 @@ void setWantTo (int value){
 }
 
 ticket createTicket (int maxPetition, int nodeID){
-        sem_wait(&semMaxPetition);
+        sem_wait(semMaxPetition);
         maxPetition=maxPetition++;
         ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
         sem_post(&semMaxPetition);
