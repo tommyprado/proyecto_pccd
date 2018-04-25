@@ -8,7 +8,8 @@
 
 typedef struct
 {
-
+        int nodeID;
+        int requestID;
 
 } ticket;
 
@@ -82,8 +83,10 @@ void setWantTo (int value){
 }
 
 ticket createTicket (int maxPetition, int nodeID){
-
-
+        sem_wait(&semMaxPetition);
+        maxPetition=maxPetition++;
+        struct ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
+        sem_post(&semMaxPetition);
 }
 
 void sendRequest (ticket ticket){
