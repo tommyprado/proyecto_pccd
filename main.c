@@ -137,6 +137,12 @@ void accessCS (int type){
 
 void replyAllPending (){
 
+
+
+
+
+
+
 }
 
 void initNode(int argc, char *argv[]) {

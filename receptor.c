@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 #define SEM_MAX_PETITION_NAME "semMaxPetition"
 #define SEM_WANT_TO_NAME "semWantTo"
 #define NODE_INITIAL_KEY 10000
@@ -130,7 +131,44 @@ void protectWantTo (){
 }
 
 void saveRequest (ticket ticket){
-//añadir ticket a una lista
+//añadir ticket a una lista enlazada para poder ir recorriendola enviando los tickets
+    //defino la lista
+    struct requestsNodeList { /* lista simple enlazada */
+        ticket ticket;
+        struct requestNodeList *next;
+    };
+
+    struct requestsNodeList *first, *latest;
+
+
+    struct  requestNodeList *newNode;
+
+    first=NULL;
+    latest=NULL;//esto ponerlo donde se inicialicen las listas !!
+
+    newNode = (struct requestNodeList *) malloc (sizeof(struct requestNodeList));
+
+    if (newNode==NULL) printf( "No hay memoria disponible!\n");
+    else{
+        newNode->ticket = ticket;
+        newNode->next = NULL;
+
+        if (first==NULL) {
+            printf( "Primer elemento\n");
+            first = newNode ;
+            latest = newNode;
+        }
+        else {
+            /* el que hasta ahora era el último tiene que apuntar al nuevo */
+            latest->next = newNode;
+            /* hacemos que el nuevo sea ahora el último */
+            latest = newNode;
+        }
+    }
+
+
+
+
 
 }
 
@@ -141,14 +179,14 @@ void unprotectWantTo (){
 void sendReply (ticket ticket){
 
 
-                messageBuff message;
-                message.mtype = TYPE_REPLY;
-                message.ticket = ticket;
-                int msg = msgsnd(ticket.nodeId+NODE_INITIAL_KEY, &message, sizeof(ticket), 0);
-                if(msg == -1) {
-                    printf("Error al enviar el ticket\n");
-                    exit(1);
-                }
+    messageBuff message;
+    message.mtype = TYPE_REPLY;
+    message.ticket = ticket;
+    int msg = msgsnd(ticket.nodeId+NODE_INITIAL_KEY, &message, sizeof(ticket), 0);
+    if(msg == -1) {
+        printf("Error al enviar el ticket\n");
+        exit(1);
+    }
 
 }
 
