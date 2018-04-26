@@ -20,8 +20,6 @@ void setWantTo (int value);
 
 void accessCS (int type);
 
-void replyAllPending ();
-
 void initNode(int argc, char *argv[]);
 
 void printWrongUsageError();
@@ -30,7 +28,7 @@ void updateMaxPetitionID (int petitionId);
 
 void saveRequest (ticket ticket);
 
-int totalNodes, maxPetition, wantTo, nodeID, msgQueue;
+int totalNodes, maxPetition, wantTo, nodeID;
 sem_t semMaxPetition, semWantTo, semPending;
 ticket pendingRequestsArray[PENDING_REQUESTS_LIMIT];
 int pendingRequestsCount;
@@ -38,7 +36,6 @@ ticket biggestTicket;
 
 int main(int argc, char *argv[]){
     initNode(argc, argv);
-    msgQueue = NODE_INITIAL_KEY + nodeID;
     while (1) {
         setWantTo(1);
         ticket ticket = createTicket(nodeID, &maxPetition, &semMaxPetition);
@@ -52,7 +49,7 @@ int main(int argc, char *argv[]){
         accessCS(0);
 
         setWantTo(0);
-        replyAllPending();
+        replyAllPending(&semPending, &pendingRequestsCount, pendingRequestsArray, nodeID);
     }
 }
 
@@ -65,7 +62,7 @@ void * receptorMain(void *arg) {
         if(wantTo && (compTickets(biggestTicket, originTicket) == 1) ) {
             sem_post(&semWantTo);
             sendReply(biggestTicket);
-        }else{
+        } else{
             saveRequest(biggestTicket);
             sem_post(&semWantTo);
         }
@@ -94,27 +91,6 @@ void setWantTo (int value){
     sem_post(&semWantTo);
 }
 
-void sendRequests(ticket ticket){
-    for(int node = 1; node < totalNodes; node++){
-        printf("Enviamos el ticket al nodo %i\n", node);
-        if(!node == nodeID){
-            messageBuff message;
-            message.mtype = TYPE_REQUEST;
-            message.ticket = ticket;
-            int msg = msgsnd(msgQueue, &message, sizeof(ticket), 0);
-            if(msg == -1) {
-                printf("Error al enviar el ticket\n");
-                exit(1);
-            }
-        }
-    }
-}
-
-void receiveReply (){
-    messageBuff message;
-    msgrcv(NODE_INITIAL_KEY + nodeID, &message, sizeof(ticket), TYPE_REPLY, 0);
-}
-
 void accessCS (int type){
     if(type == 0){
         printf("\nEsperando salto de linea...\n");
@@ -122,21 +98,6 @@ void accessCS (int type){
         return;
     }
     usleep(100*1000);
-}
-
-void replyAllPending (){
-    //Enviar reply a todos los nodos de pendingRequestsArray hasta pendingRequestCount
-    sem_wait(&semPending);
-    for(int i=0;i<pendingRequestsCount;i++){
-        if( (msgsnd(msgQueue, &pendingRequestsArray[i], sizeof(pendingRequestsArray[i])-sizeof(long), 0)) == -1) {
-            printf("Error al invocar 'msgrcv()'.\n");
-            exit(0);
-        } else {
-            printf("Ticket nº %i retirado correctamente.\n", &i);
-        }
-    }
-    sem_post(&semPending);
-
 }
 
 void initNode(int argc, char *argv[]) {

@@ -31,19 +31,35 @@ ticket receiveRequest (int nodeID){
 }
 
 void sendRequests(ticket ticket, int nodeID, int totalNodes){
+    int msgQueue = NODE_INITIAL_KEY + nodeID;
     for(int node = 1; node < totalNodes; node++){
         printf("Enviamos el ticket al nodo %i\n", node);
         if(!node == nodeID){
             messageBuff message;
             message.mtype = TYPE_REQUEST;
             message.ticket = ticket;
-            int msg = msgsnd(NODE_INITIAL_KEY + node, &message, sizeof(ticket), 0);
+            int msg = msgsnd(msgQueue, &message, sizeof(ticket), 0);
             if(msg == -1) {
                 printf("Error al enviar el ticket\n");
                 exit(1);
             }
         }
     }
+}
+
+void replyAllPending (sem_t *semPending, int *pendingRequestsCount, ticket * pendingRequestsArray, int nodeID){
+    int msgQueue = NODE_INITIAL_KEY + nodeID;
+    sem_wait(semPending);
+    for(int i=0;i < *pendingRequestsCount;i++){
+        if( (msgsnd(msgQueue, &pendingRequestsArray[i], sizeof(pendingRequestsArray[i])-sizeof(long), 0)) == -1) {
+            printf("Error al invocar 'msgrcv()'.\n");
+            exit(0);
+        } else {
+            printf("Ticket nº %i retirado correctamente.\n", &i);
+        }
+    }
+    *pendingRequestsCount = 0;
+    sem_post(semPending);
 }
 
 void receiveReply (int nodeID){
