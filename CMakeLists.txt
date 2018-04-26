@@ -3,4 +3,10 @@ project(Proyecto C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(Proyecto launcher.c main.c receptor.c)
+find_package (Threads)
+
+add_executable(Launcher launcher.c)
+add_executable(Main main.c)
+
+target_link_libraries (Main ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (Receptor ${CMAKE_THREAD_LIBS_INIT})
