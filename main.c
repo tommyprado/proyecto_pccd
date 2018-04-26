@@ -6,25 +6,17 @@
 #include <sys/msg.h>
 #include <sys/shm.h>
 #include <pthread.h>
+#include "headers/ticketUtils.h"
+#include "headers/inits.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-#define SEM_MAX_PETITION_NAME "semMaxPetition"
-#define SEM_WANT_TO_NAME "semWantTo"
-#define NODE_INITIAL_KEY 10000
-#define PENDING_SM_COUNT 20000
-#define PENDING_SM_ARRAY 30000
 #define TYPE_REQUEST 1
 #define TYPE_REPLY 2
 #define PENDING_REQUESTS_LIMIT 1000000
+#define NODE_INITIAL_KEY 10000
 
-typedef struct
-{
-    int nodeID;
-    int requestID;
-
-} ticket;
 
 typedef struct {
     long    mtype;
@@ -34,8 +26,6 @@ typedef struct {
 void setWantTo (int value);
 
 void doStuff (int type);
-
-ticket createTicket (int nodeID);
 
 void sendRequests(ticket ticket);
 
@@ -49,12 +39,6 @@ void initNode(int argc, char *argv[]);
 
 void printWrongUsageError();
 
-void initReceptor();
-
-void initSemaphores();
-
-void initMailBoxes();
-
 ticket receiveRequest ();
 
 void updateMaxPetitionID (int petitionId);
@@ -67,12 +51,10 @@ void sendReply (ticket ticket);
 
 void saveRequest (ticket ticket);
 
-int compTickets(ticket ticket1, ticket ticket2);
-
 int totalNodes, maxPetition, wantTo, nodeID;
-sem_t semMaxPetition, semWantTo;
+sem_t semMaxPetition, semWantTo, semPending;
 ticket pendingRequestsArray[PENDING_REQUESTS_LIMIT];
-int *pendingRequestsCountPointer;
+int pendingRequestsCount;
 ticket biggestTicket;
 
 int main(int argc, char *argv[]){
@@ -81,7 +63,7 @@ int main(int argc, char *argv[]){
         doStuff(0);
 
         setWantTo(1);
-        ticket ticket = createTicket(nodeID);
+        ticket ticket = createTicket(nodeID, &maxPetition, &semMaxPetition);
         sendRequests(ticket);
         int countReply = 0;
         while (countReply < totalNodes) {
@@ -112,25 +94,6 @@ void * receptorMain(void *arg) {
     }
 }
 
-int compTickets(ticket ticket1, ticket ticket2) {
-    if (ticket1.requestID > ticket2.requestID) {
-        return 1;
-    }
-    if (ticket1.requestID < ticket2.requestID) {
-        return -1;
-    }
-    if (ticket1.requestID == ticket2.requestID) {
-        if (ticket1.nodeID > ticket2.nodeID) {
-            return 1;
-        }
-        if (ticket1.nodeID < ticket2.nodeID) {
-            return -1;
-        }
-        return 0;
-    }
-    return 0;
-}
-
 ticket receiveRequest (){
     messageBuff message;
     msgrcv(NODE_INITIAL_KEY + nodeID, &message, sizeof(ticket), TYPE_REQUEST, 0);
@@ -150,24 +113,10 @@ void protectWantTo (){
 }
 
 void saveRequest (ticket ticket){
-//    // TODO: Proteger variables
-//    pendingRequests *newNode = (pendingRequests *) malloc (sizeof(struct requestNodeList));
-//
-//    if (newNode == NULL) printf( "No hay memoria disponible!\n");
-//    else{
-//        newNode->ticket = ticket;
-//        newNode->next = NULL;
-//
-//        if (first == NULL) {
-//            printf( "Primer elemento\n");
-//            first = newNode ;
-//            latest = newNode;
-//        }
-//        else {
-//            latest->next = newNode;
-//            latest = newNode;
-//        }
-//    }
+    sem_wait(&semPending);
+    pendingRequestsArray[pendingRequestsCount] = ticket;
+    pendingRequestsCount++;
+    sem_post(&semPending);
 }
 
 void unprotectWantTo (){
@@ -199,14 +148,6 @@ void setWantTo (int value){
     sem_wait(&semWantTo);
     wantTo=value;
     sem_post(&semWantTo);
-}
-
-ticket createTicket (int nodeID){
-    sem_wait(&semMaxPetition);
-    maxPetition=maxPetition++;
-    ticket myTicket = {.nodeID = nodeID, .requestID = maxPetition};
-    sem_post(&semMaxPetition);
-    return myTicket;
 }
 
 void sendRequests(ticket ticket){
@@ -254,34 +195,9 @@ void initNode(int argc, char *argv[]) {
         printWrongUsageError();
     }
 
-    initSemaphores();
-    initMailBoxes();
-    initReceptor();
-}
-
-void initSemaphores() {
-    if (sem_init(&semMaxPetition,0,0) && sem_init(&semWantTo, 0, 0)) { // Inicializamos a 0 para que siempre esperen
-        printf("Error creating semaphore\n");
-        exit(1);
-    }
-}
-
-void initReceptor() {
-    pthread_t receptorThread;
-    if(pthread_create(&receptorThread, NULL, receptorMain, NULL)) {
-        printf("Error creating thread\n");
-        exit(1);
-    }
-}
-
-void initMailBoxes() {
-    int key= nodeID + NODE_INITIAL_KEY;
-    int mailbox = msgget(key, 0666 | IPC_CREAT);
-    if (mailbox == -1)
-    {
-        printf("Error buzón\n");
-        exit (-1);
-    }
+    initSemaphores(&semMaxPetition, &semWantTo, &semPending);
+    initMailBoxes(nodeID);
+    initReceptor(receptorMain);
 }
 
 void printWrongUsageError() {
