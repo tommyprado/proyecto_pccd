@@ -1,7 +1,8 @@
-#include <json-c/json.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include<stdbool.h>
 
 void getConfString(int argc, char **argv, char *returnString);
 void printArgumentError();
@@ -38,4 +39,10 @@ void getConfString(int argc, char **argv, char *returnString) {
 
 void printArgumentError() {
     printf("Wrong argument number.\nUsage: ./launcher ./path/to/config/file");
+}
+
+
+bool StatsWith(const char *a, const char *b){
+    if(strncmp(a, b, strlen(b))) return 1;
+    return 0;
 }
