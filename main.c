@@ -8,28 +8,15 @@
 #include <pthread.h>
 #include "headers/ticketUtils.h"
 #include "headers/inits.h"
+#include "headers/coms.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-#define TYPE_REQUEST 1
-#define TYPE_REPLY 2
 #define PENDING_REQUESTS_LIMIT 1000000
 #define NODE_INITIAL_KEY 10000
 
-
-typedef struct {
-    long    mtype;
-    ticket  ticket;
-} messageBuff;
-
 void setWantTo (int value);
-
-void doStuff (int type);
-
-void sendRequests(ticket ticket);
-
-void receiveReply ();
 
 void accessCS (int type);
 
@@ -39,15 +26,7 @@ void initNode(int argc, char *argv[]);
 
 void printWrongUsageError();
 
-ticket receiveRequest ();
-
 void updateMaxPetitionID (int petitionId);
-
-void protectWantTo ();
-
-void unprotectWantTo ();
-
-void sendReply (ticket ticket);
 
 void saveRequest (ticket ticket);
 
@@ -61,14 +40,12 @@ int main(int argc, char *argv[]){
     initNode(argc, argv);
     msgQueue = NODE_INITIAL_KEY + nodeID;
     while (1) {
-        doStuff(0);
-
         setWantTo(1);
         ticket ticket = createTicket(nodeID, &maxPetition, &semMaxPetition);
-        sendRequests(ticket);
+        sendRequests(ticket, nodeID, totalNodes);
         int countReply = 0;
         while (countReply < totalNodes) {
-            receiveReply();
+            receiveReply(nodeID);
             countReply++;
         }
 
@@ -81,23 +58,18 @@ int main(int argc, char *argv[]){
 
 void * receptorMain(void *arg) {
     while(1) {
-        ticket originTicket = receiveRequest();
+        ticket originTicket = receiveRequest(nodeID);
         updateMaxPetitionID(maxPetition);
-        protectWantTo();
+        sem_wait(&semWantTo);
 
         if(wantTo && (compTickets(biggestTicket, originTicket) == 1) ) {
-            unprotectWantTo();
+            sem_post(&semWantTo);
             sendReply(biggestTicket);
         }else{
             saveRequest(biggestTicket);
-            unprotectWantTo();
+            sem_post(&semWantTo);
         }
     }
-}
-
-ticket receiveRequest (){
-    messageBuff message;
-    msgrcv(NODE_INITIAL_KEY + nodeID, &message, sizeof(ticket), TYPE_REQUEST, 0);
 }
 
 void updateMaxPetitionID (int petitionId){
@@ -109,40 +81,11 @@ void updateMaxPetitionID (int petitionId){
     sem_post(&semMaxPetition);
 }
 
-void protectWantTo (){
-    sem_wait(&semWantTo);
-}
-
 void saveRequest (ticket ticket){
     sem_wait(&semPending);
     pendingRequestsArray[pendingRequestsCount] = ticket;
     pendingRequestsCount++;
     sem_post(&semPending);
-}
-
-void unprotectWantTo (){
-    sem_post(&semWantTo);
-}
-
-void sendReply (ticket ticket){
-    messageBuff message;
-    message.mtype = TYPE_REPLY;
-    message.ticket = ticket;
-    int msg = msgsnd(ticket.nodeID+NODE_INITIAL_KEY, &message, sizeof(ticket), 0);
-    if(msg == -1) {
-        printf("Error al enviar el ticket\n");
-        exit(1);
-    }
-
-}
-
-void doStuff (int type){
-    if(type == 0){
-        printf("\nEsperando salto de linea...\n");
-        getchar();
-        return;
-    }
-    usleep(100*1000);
 }
 
 void setWantTo (int value){
