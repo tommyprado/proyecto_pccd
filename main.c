@@ -51,7 +51,7 @@ void sendReply (ticket ticket);
 
 void saveRequest (ticket ticket);
 
-int totalNodes, maxPetition, wantTo, nodeID;
+int totalNodes, maxPetition, wantTo, nodeID, msgQueue;
 sem_t semMaxPetition, semWantTo, semPending;
 ticket pendingRequestsArray[PENDING_REQUESTS_LIMIT];
 int pendingRequestsCount;
@@ -59,6 +59,7 @@ ticket biggestTicket;
 
 int main(int argc, char *argv[]){
     initNode(argc, argv);
+    msgQueue = NODE_INITIAL_KEY + nodeID;
     while (1) {
         doStuff(0);
 
@@ -157,7 +158,7 @@ void sendRequests(ticket ticket){
             messageBuff message;
             message.mtype = TYPE_REQUEST;
             message.ticket = ticket;
-            int msg = msgsnd(NODE_INITIAL_KEY + node, &message, sizeof(ticket), 0);
+            int msg = msgsnd(msgQueue, &message, sizeof(ticket), 0);
             if(msg == -1) {
                 printf("Error al enviar el ticket\n");
                 exit(1);
@@ -181,7 +182,18 @@ void accessCS (int type){
 }
 
 void replyAllPending (){
-    // TODO: replyAllPending
+    //Enviar reply a todos los nodos de pendingRequestsArray hasta pendingRequestCount
+    sem_wait(&semPending);
+    for(int i=0;i<pendingRequestsCount;i++){
+        if( (msgsnd(msgQueue, &pendingRequestsArray[i], sizeof(pendingRequestsArray[i])-sizeof(long), 0)) == -1) {
+            printf("Error al invocar 'msgrcv()'.\n");
+            exit(0);
+        } else {
+            printf("Ticket nº %i retirado correctamente.\n", &i);
+        }
+    }
+    sem_post(&semPending);
+
 }
 
 void initNode(int argc, char *argv[]) {
