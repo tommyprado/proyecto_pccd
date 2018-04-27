@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/msg.h>
+#include <zconf.h>
 #include "headers/ticketUtils.h"
 #include "headers/coms.h"
 
@@ -15,17 +16,17 @@ void printArgumentError();
 
 FILE * getFile(int argc, char *argv[]) ;
 
-char *getNextLine(FILE *fp, char *nextLine) ;
-
 void processLine(char line[LINE_LIMIT]);
 
 void escribir();
 
+void execProcess(int node, int nodeCount);
+
 int main(int argc, char *argv[]) {
     FILE *fp = getFile(argc, argv);
+    char nextLine[LINE_LIMIT];
     while (1) {
-        char nextLine[LINE_LIMIT];
-        if(getNextLine(fp, nextLine) != NULL) {
+        if((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             processLine(nextLine);
         } else {
             break;
@@ -52,13 +53,23 @@ void processLine(char line[LINE_LIMIT]) {
     }
     if (strcmp(split[0], "#") == 0) {
         int nodeCount = atoi(split[1]);
-        printf("%d\n", nodeCount);
+        for (int i = 0; i < nodeCount; ++i) {
+            if (fork() == 0){
+                execProcess(i + 1, nodeCount);
+            }
+        }
     }
+}
+
+void execProcess(int node, int nodeCount) {
+    char command[100];
+    sprintf(command, "./Main %d %d 1", node, nodeCount);
+    system(command);
 }
 
 void escribir() {
 
-    messageBuff message;
+    printMessage message;
 
     msgrcv(COMMON_MAILBOX_KEY, &message, sizeof(ticket), TYPE_ENTRO, 0);
     if(message.mtype==TYPE_ENTRO){
@@ -70,14 +81,8 @@ void escribir() {
     if(message.mtype==TYPE_SALGO){
         FILE * fileSC = fopen("pagos.dat", "w");
           fprintf(fileSC, "%li 0\n", message.t);
-
     }
 
-}
-
-
-char *getNextLine(FILE *fp, char *nextLine) {
-    return fgets(nextLine, LINE_LIMIT, fp);
 }
 
 FILE * getFile(int argc, char *argv[]) {

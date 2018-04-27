@@ -7,9 +7,12 @@ typedef struct {
     long    mtype;
     ticket  ticket;
     __suseconds_t t;
+} printMessage;
 
-
-} messageBuff;
+typedef struct {
+    long    mtype;
+    ticket  ticket;
+} ticketMessage;
 
 
 ticket receiveRequest (int nodeID);

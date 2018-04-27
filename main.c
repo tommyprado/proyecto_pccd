@@ -20,10 +20,6 @@
 #define TYPE_ENTRO 3
 #define TYPE_SALGO 4
 
-
-#define RECEPTOR_TAG "RECEPTOR> "
-#define MAIN_TAG "MAIN> "
-
 #define MANUAL 0
 #define SC_WAIT 100
 
@@ -50,13 +46,15 @@ int pendingRequestsCount;
 ticket myTicket;
 
 int mode;
+char mainTag[100];
+char receptorTag[100];
 
 int main(int argc, char *argv[]){
     initNode(argc, argv);
     while (1) {
-        printf("%sMoviendo papeles...\n", MAIN_TAG);
+        printf("%sMoviendo papeles...\n", mainTag);
         doStuff(mode);
-        printf("%sIntentando acceder a la sección crítica...\n", MAIN_TAG);
+        printf("%sIntentando acceder a la sección crítica...\n", mainTag);
         setWantTo(1);
         sem_wait(&semTicket);
         myTicket = createTicket(nodeID, &maxPetition, &semMaxPetition);
@@ -65,34 +63,34 @@ int main(int argc, char *argv[]){
         int countReply = 1;
         while (countReply < totalNodes) {
             receiveReply(nodeID);
-            printf("%sReply recibido\n", MAIN_TAG);
+            printf("%sReply recibido\n", mainTag);
             countReply++;
         }
-        printf("%sAccediendo a la sección crítica...\n", MAIN_TAG);
+        printf("%sAccediendo a la sección crítica...\n", mainTag);
         accessCS(0, myTicket);
-        printf("%sFuera de la sección crítica\n", MAIN_TAG);
+        printf("%sFuera de la sección crítica\n", mainTag);
         setWantTo(0);
-        printf("%sRespondiendo a Requests pendientes...\n", MAIN_TAG);
+        printf("%sRespondiendo a Requests pendientes...\n", mainTag);
         replyAllPending(&semPending, &pendingRequestsCount, pendingRequestsArray, nodeID);
     }
 }
 
 void * receptorMain(void *arg) {
     while(1) {
-        printf("%sEsperando a recibir mensaje\n", RECEPTOR_TAG);
+        printf("%sEsperando a recibir mensaje\n", receptorTag);
         ticket originTicket = receiveRequest(nodeID);
-        printf("%sMensaje recibido\n", RECEPTOR_TAG);
+        printf("%sMensaje recibido\n", receptorTag);
         updateMaxPetitionID(maxPetition);
         sem_wait(&semWantTo);
         sem_wait(&semTicket);
         if(!wantTo || wantTo && (compTickets(myTicket, originTicket) == 1) ) { // myTicket > originTicket?
             sem_post(&semTicket);
             sem_post(&semWantTo);
-            printf("%sEnviando reply\n", RECEPTOR_TAG);
+            printf("%sEnviando reply\n", receptorTag);
             sendReply(originTicket);
         } else{
             sem_post(&semTicket);
-            printf("%sGuardando request\n", RECEPTOR_TAG);
+            printf("%sGuardando request\n", receptorTag);
             saveRequest(originTicket);
             sem_post(&semWantTo);
         }
@@ -132,7 +130,7 @@ void writeOut(int tipo, ticket ticket) {
     struct timeval tv;
     gettimeofday(&tv,NULL);
     __suseconds_t t = tv.tv_usec;
-    messageBuff message;
+    printMessage message;
     message.mtype = tipo;
     message.ticket = ticket;
     message.t = t;
@@ -168,6 +166,8 @@ void initNode(int argc, char *argv[]) {
         printWrongUsageError();
     }
     mode = atoi(argv[3]);
+    sprintf(mainTag, "MAIN %d> ", nodeID);
+    sprintf(receptorTag, "RECEPTOR %d> ", nodeID);
 
     initSemaphores(&semMaxPetition, &semWantTo, &semPending, &semTicket);
     initMailBoxes(nodeID);

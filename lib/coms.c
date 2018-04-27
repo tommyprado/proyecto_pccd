@@ -9,14 +9,9 @@
 
 #define NODE_INITIAL_KEY 10000
 
-typedef struct {
-    long    mtype;
-    ticket  ticket;
-} messageBuff;
-
 void sendReply (ticket ticket){
     int msqid = getMsqid(ticket.nodeID);
-    messageBuff message;
+    ticketMessage message;
     message.mtype = TYPE_REPLY;
     message.ticket = ticket;
     int msg = msgsnd(msqid, &message, sizeof(ticket), 0);
@@ -27,7 +22,7 @@ void sendReply (ticket ticket){
 }
 
 ticket receiveRequest (int nodeID) {
-    messageBuff message;
+    ticketMessage message;
     int msqid = getMsqid(nodeID);
     msgrcv(msqid, &message, sizeof(ticket), TYPE_REQUEST, 0);
     return message.ticket;
@@ -37,7 +32,7 @@ void sendRequests(ticket ticket, int nodeID, int totalNodes){
     for(int node = 1; node < totalNodes + 1; node++){
         if(node != nodeID){
             int msqid = getMsqid(node);
-            messageBuff message;
+            ticketMessage message;
             message.mtype = TYPE_REQUEST;
             message.ticket = ticket;
             int msg = msgsnd(msqid, &message, sizeof(ticket), 0);
@@ -54,7 +49,7 @@ void replyAllPending (sem_t *semPending, int *pendingRequestsCount, ticket * pen
     for(int i=0; i < *pendingRequestsCount; i++){
         ticket ticket = pendingRequestsArray[i];
         int msqid = getMsqid(ticket.nodeID);
-        messageBuff message;
+        ticketMessage message;
         message.mtype = TYPE_REPLY;
         message.ticket = ticket;
         if(msgsnd(msqid, &message, sizeof(ticket), 0) == -1) {
@@ -68,7 +63,7 @@ void replyAllPending (sem_t *semPending, int *pendingRequestsCount, ticket * pen
 
 void receiveReply (int nodeID){
     int msqid = getMsqid(nodeID);
-    messageBuff message;
+    ticketMessage message;
     msgrcv(msqid, &message, sizeof(ticket), TYPE_REPLY, 0);
 }
 
