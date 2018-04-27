@@ -37,8 +37,6 @@ typedef struct {
 
 void setWantTo (int value);
 
-void accessCS (int type);
-
 void initNode(int argc, char *argv[]);
 
 void printWrongUsageError();
@@ -48,6 +46,8 @@ void updateMaxPetitionID (int petitionId);
 void saveRequest (ticket ticket);
 
 void doStuff(int type) ;
+
+void accessCS (int type,ticket ticket);
 
 int totalNodes, maxPetition, wantTo, nodeID;
 sem_t semMaxPetition, semWantTo, semPending, semTicket;
@@ -73,7 +73,7 @@ int main(int argc, char *argv[]){
             countReply++;
         }
         printf("%sAccediendo a la sección crítica...\n", MAIN_TAG);
-        accessCS(0);
+        accessCS(0,myTicket);
         printf("%sFuera de la sección crítica\n", MAIN_TAG);
         setWantTo(0);
         printf("%sRespondiendo a Requests pendientes...\n", MAIN_TAG);
@@ -151,8 +151,7 @@ void funcion (int tipo, ticket ticket) {
 }
 
 
-void accessCS (int type){
-    ticket ticket;
+void accessCS (int type,ticket ticket){
     funcion(TYPE_ENTRO,ticket);
     if(type == 0){
         getchar();
