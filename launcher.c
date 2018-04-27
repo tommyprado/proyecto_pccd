@@ -2,19 +2,34 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include<stdbool.h>
+#include <stdbool.h>
 
 void getConfString(int argc, char **argv, char *returnString);
 void printArgumentError();
 
+FILE * getFile(int argc, char *argv[]) ;
+
+char *getNextLine(FILE *fp, char *nextLine) ;
+
 int main(int argc, char *argv[]) {
-    char confString[10000];
-    getConfString(argc, argv, confString);
-    printf("%s", confString);
+    FILE *fp = getFile(argc, argv);
+    while (1) {
+        char nextLine[200];
+        if(getNextLine(fp, nextLine) != NULL) {
+
+        } else {
+            break;
+        }
+    }
+    fclose(fp);
     return 0;
 }
 
-void getConfString(int argc, char **argv, char *returnString) {
+char *getNextLine(FILE *fp, char *nextLine) {
+    return fgets(nextLine, 200, fp);
+}
+
+FILE * getFile(int argc, char *argv[]) {
     if (argc != 2) {
         printArgumentError();
         exit(0);
@@ -26,15 +41,7 @@ void getConfString(int argc, char **argv, char *returnString) {
     if (fp == NULL) {
         perror("Error opening configuration file");
     }
-    while (1) {
-        char buff[200];
-        if(fgets(buff, 200, fp) != NULL) {
-            strcat(returnString, buff);
-        } else {
-            fclose(fp);
-            break;
-        }
-    }
+    return fp;
 }
 
 void printArgumentError() {
@@ -42,7 +49,6 @@ void printArgumentError() {
 }
 
 
-bool StatsWith(const char *a, const char *b){
-    if(strncmp(a, b, strlen(b))) return 1;
-    return 0;
+bool startsWith(const char *a, const char *b){
+    return strncmp(a, b, strlen(b)) == 0;
 }

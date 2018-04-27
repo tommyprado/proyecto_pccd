@@ -1,37 +1,37 @@
-#5
+# 5
 
 - 200
-4   Pag   3
-4   Anu   6
-2   Res   8
-1   Con   2
++ 4   Pag   3
++ 4   Anu   6
++ 2   Res   8
++ 1   Con   2
 
 - 600
-3   Pag   3
-5   Anu   6
-1   Res   8
-3   Con   2
++ 3   Pag   3
++ 5   Anu   6
++ 1   Res   8
++ 3   Con   2
 
 - 100
-2   Pag   3
-3   Anu   6
-1   Res   8
-5   Con   2
++ 2   Pag   3
++ 3   Anu   6
++ 1   Res   8
++ 5   Con   2
 
 - 200
-4   Pag   3
-4   Anu   6
-2   Res   8
-1   Con   2
++ 4   Pag   3
++ 4   Anu   6
++ 2   Res   8
++ 1   Con   2
 
 - 600
-3   Pag   3
-5   Anu   6
-1   Res   8
-3   Con   2
++ 3   Pag   3
++ 5   Anu   6
++ 1   Res   8
++ 3   Con   2
 
 - 100
-2   Pag   3
-3   Anu   6
-1   Res   8
-5   Con   2
++ 2   Pag   3
++ 3   Anu   6
++ 1   Res   8
++ 5   Con   2

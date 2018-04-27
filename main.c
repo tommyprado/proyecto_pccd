@@ -24,7 +24,8 @@
 #define RECEPTOR_TAG "RECEPTOR> "
 #define MAIN_TAG "MAIN> "
 
-#define ENTRO 1
+#define MANUAL 0
+#define SC_WAIT 100
 
 typedef struct {
     long    mtype;
@@ -45,9 +46,9 @@ void updateMaxPetitionID (int petitionId);
 
 void saveRequest (ticket ticket);
 
-void doStuff(int type) ;
+void doStuff(int mode) ;
 
-void accessCS (int type,ticket ticket);
+void accessCS (int mode,ticket ticket);
 
 int totalNodes, maxPetition, wantTo, nodeID;
 sem_t semMaxPetition, semWantTo, semPending, semTicket;
@@ -55,11 +56,13 @@ ticket pendingRequestsArray[PENDING_REQUESTS_LIMIT];
 int pendingRequestsCount;
 ticket myTicket;
 
+int mode;
+
 int main(int argc, char *argv[]){
     initNode(argc, argv);
     while (1) {
         printf("%sMoviendo papeles...\n", MAIN_TAG);
-        doStuff(0);
+        doStuff(mode);
         printf("%sIntentando acceder a la sección crítica...\n", MAIN_TAG);
         setWantTo(1);
         sem_wait(&semTicket);
@@ -73,7 +76,7 @@ int main(int argc, char *argv[]){
             countReply++;
         }
         printf("%sAccediendo a la sección crítica...\n", MAIN_TAG);
-        accessCS(0,myTicket);
+        accessCS(0, myTicket);
         printf("%sFuera de la sección crítica\n", MAIN_TAG);
         setWantTo(0);
         printf("%sRespondiendo a Requests pendientes...\n", MAIN_TAG);
@@ -124,16 +127,14 @@ void setWantTo (int value){
     sem_post(&semWantTo);
 }
 
-void doStuff(int type) {
-    if(type == 0){
+void doStuff(int mode) {
+    if(mode == MANUAL){
         getchar();
         return;
-    } else {
-        usleep(100*1000);
     }
 }
 
-void funcion (int tipo, ticket ticket) {
+void writeOut(int tipo, ticket ticket) {
 
     struct timeval tv;
     gettimeofday(&tv,NULL);
@@ -151,20 +152,20 @@ void funcion (int tipo, ticket ticket) {
 }
 
 
-void accessCS (int type,ticket ticket){
-    funcion(TYPE_ENTRO,ticket);
-    if(type == 0){
+void accessCS (int mode, ticket ticket){
+    writeOut(TYPE_ENTRO, ticket);
+    if(mode == MANUAL){
         getchar();
         return;
     } else {
-        usleep(100*1000);
+        usleep(SC_WAIT * 1000);
     }
-    funcion(TYPE_SALGO,ticket);
+    writeOut(TYPE_SALGO, ticket);
 
 }
 
 void initNode(int argc, char *argv[]) {
-    if (argc != 3) {
+    if (argc != 4) {
         printWrongUsageError();
         exit(0);
     }
@@ -173,6 +174,7 @@ void initNode(int argc, char *argv[]) {
     if (nodeID > totalNodes) {
         printWrongUsageError();
     }
+    mode = atoi(argv[3]);
 
     initSemaphores(&semMaxPetition, &semWantTo, &semPending, &semTicket);
     initMailBoxes(nodeID);
@@ -180,7 +182,7 @@ void initNode(int argc, char *argv[]) {
 }
 
 void printWrongUsageError() {
-    printf("Wrong arguments\nUsage: ./main nodeID totalNodes (nodeID <= totalNodes)\n");
+    printf("Wrong arguments\nUsage: ./main nodeID totalNodes mode (nodeID <= totalNodes)\n");
 }
 
 #pragma clang diagnostic pop
