@@ -6,10 +6,8 @@
 #include <zconf.h>
 #include "headers/ticketUtils.h"
 #include "headers/coms.h"
+#include "headers/out.h"
 
-#define COMMON_MAILBOX_KEY 283300
-#define TYPE_ENTRO 3
-#define TYPE_SALGO 4
 #define LINE_LIMIT 200
 
 void printArgumentError();
@@ -17,8 +15,6 @@ void printArgumentError();
 FILE * getFile(int argc, char *argv[]) ;
 
 void processLine(char line[LINE_LIMIT]);
-
-void escribir();
 
 void execProcess(int node, int nodeCount);
 
@@ -35,7 +31,7 @@ int main(int argc, char *argv[]) {
     fclose(fp);
     //escribir!!!
 
-    escribir();
+    writeOut();
 
 
     return 0;
@@ -65,24 +61,6 @@ void execProcess(int node, int nodeCount) {
     char command[100];
     sprintf(command, "./Main %d %d 1", node, nodeCount);
     system(command);
-}
-
-void escribir() {
-
-    printMessage message;
-
-    msgrcv(COMMON_MAILBOX_KEY, &message, sizeof(ticket), TYPE_ENTRO, 0);
-    if(message.mtype==TYPE_ENTRO){
-        FILE * fileSC = fopen("pagos.dat", "w");
-          fprintf(fileSC, "%li 1\n", message.t);
-
-    }
-    msgrcv(COMMON_MAILBOX_KEY, &message, sizeof(ticket), TYPE_SALGO, 0);
-    if(message.mtype==TYPE_SALGO){
-        FILE * fileSC = fopen("pagos.dat", "w");
-          fprintf(fileSC, "%li 0\n", message.t);
-    }
-
 }
 
 FILE * getFile(int argc, char *argv[]) {
