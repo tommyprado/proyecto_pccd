@@ -29,11 +29,7 @@ int main(int argc, char *argv[]) {
         }
     }
     fclose(fp);
-    //escribir!!!
-
     writeOut();
-
-
     return 0;
 }
 

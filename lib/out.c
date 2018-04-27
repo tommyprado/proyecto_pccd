@@ -25,16 +25,17 @@ void sndMsgOut(int type, ticket ticket) {
 void writeOut() {
     printMessage message;
     int msqid = getMsqid(WRITE_OUT_QUEUE);
-    msgrcv(msqid, &message, sizeof(ticket), TYPE_ENTRO, 0);
-    if(message.mtype==TYPE_ENTRO){
+    msgrcv(msqid, &message, sizeof(ticket), 0, 0);
+    if(message.mtype == TYPE_ENTRO){
         FILE * fileSC = fopen("pagos.dat", "w");
         fprintf(fileSC, "%li 1\n", message.t);
+        fclose(fileSC);
 
     }
-    msgrcv(msqid, &message, sizeof(ticket), TYPE_SALGO, 0);
-    if(message.mtype==TYPE_SALGO){
+    else if(message.mtype == TYPE_SALGO){
         FILE * fileSC = fopen("pagos.dat", "w");
         fprintf(fileSC, "%li 0\n", message.t);
+        fclose(fileSC);
     }
 }
 

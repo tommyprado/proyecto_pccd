@@ -18,7 +18,7 @@
 #define PENDING_REQUESTS_LIMIT 1000000
 #define NODE_INITIAL_KEY 10000
 
-#define SC_WAIT 10000
+#define SC_WAIT 1000
 
 void setWantTo (int value);
 
