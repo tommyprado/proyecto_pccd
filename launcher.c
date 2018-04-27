@@ -53,6 +53,7 @@ void escribir() {
           fprintf(fileSC, "%li 1\n", message.t);
 
     }
+    msgrcv(COMMON_MAILBOX_KEY, &message, sizeof(ticket), TYPE_SALGO, 0);
     if(message.mtype==TYPE_SALGO){
         FILE * fileSC = fopen("pagos.dat", "w");
           fprintf(fileSC, "%li 0\n", message.t);
