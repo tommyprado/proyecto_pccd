@@ -3,6 +3,15 @@
 #ifndef PROYECTO_COMS_H
 #define PROYECTO_COMS_H
 
+typedef struct {
+    long    mtype;
+    ticket  ticket;
+    __suseconds_t t;
+
+
+} messageBuff;
+
+
 ticket receiveRequest (int nodeID);
 
 void sendRequests(ticket ticket, int nodeID, int totalNodes);

@@ -3,6 +3,17 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <sys/msg.h>
+#include "headers/ticketUtils.h"
+#include "headers/coms.h"
+
+#define COMMON_MAILBOX_KEY 283300
+#define TYPE_ENTRO 3
+#define TYPE_SALGO 4
+
+
+
+
 
 void getConfString(int argc, char **argv, char *returnString);
 void printArgumentError();
@@ -10,6 +21,8 @@ void printArgumentError();
 FILE * getFile(int argc, char *argv[]) ;
 
 char *getNextLine(FILE *fp, char *nextLine) ;
+
+void escribir();
 
 int main(int argc, char *argv[]) {
     FILE *fp = getFile(argc, argv);
@@ -22,8 +35,32 @@ int main(int argc, char *argv[]) {
         }
     }
     fclose(fp);
+    //escribir!!!
+
+    escribir();
+
+
     return 0;
 }
+
+void escribir() {
+
+    messageBuff message;
+
+    msgrcv(COMMON_MAILBOX_KEY, &message, sizeof(ticket), TYPE_ENTRO, 0);
+    if(message.mtype==TYPE_ENTRO){
+        FILE * fileSC = fopen("pagos.dat", "w");
+          fprintf(fileSC, "%li 1\n", message.t);
+
+    }
+    if(message.mtype==TYPE_SALGO){
+        FILE * fileSC = fopen("pagos.dat", "w");
+          fprintf(fileSC, "%li 0\n", message.t);
+
+    }
+
+}
+
 
 char *getNextLine(FILE *fp, char *nextLine) {
     return fgets(nextLine, 200, fp);

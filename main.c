@@ -27,13 +27,6 @@
 #define MANUAL 0
 #define SC_WAIT 100
 
-typedef struct {
-    long    mtype;
-    ticket  ticket;
-    __suseconds_t t;
-
-
-} messageBuff;
 
 
 void setWantTo (int value);
