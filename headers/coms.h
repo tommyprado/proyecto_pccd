@@ -1,7 +1,3 @@
-//
-// Created by mati on 26/04/18.
-//
-
 #include "ticketUtils.h"
 
 #ifndef PROYECTO_COMS_H

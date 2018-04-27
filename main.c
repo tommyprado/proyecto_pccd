@@ -6,6 +6,7 @@
 #include <sys/msg.h>
 #include <sys/shm.h>
 #include <pthread.h>
+#include <sys/time.h>
 #include "headers/ticketUtils.h"
 #include "headers/inits.h"
 #include "headers/coms.h"
@@ -15,8 +16,24 @@
 
 #define PENDING_REQUESTS_LIMIT 1000000
 #define NODE_INITIAL_KEY 10000
+#define COMMON_MAILBOX_KEY 283300
+#define TYPE_ENTRO 3
+#define TYPE_SALGO 4
+
+
 #define RECEPTOR_TAG "RECEPTOR> "
 #define MAIN_TAG "MAIN> "
+
+#define ENTRO 1
+
+typedef struct {
+    long    mtype;
+    ticket  ticket;
+    __suseconds_t t;
+
+
+} messageBuff;
+
 
 void setWantTo (int value);
 
@@ -116,14 +133,35 @@ void doStuff(int type) {
     }
 }
 
-void accessCS (int type){
+void funcion (int tipo, ticket ticket) {
 
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    __suseconds_t t = tv.tv_usec;
+    messageBuff message;
+    message.mtype = tipo;
+    message.ticket = ticket;
+    message.t = t;
+
+    if(msgsnd(COMMON_MAILBOX_KEY, &message, sizeof(ticket)+sizeof(t), 0) == -1) {
+        printf("Error al invocar 'msgrcv()'.\n");
+        exit(0);
+    }
+
+}
+
+
+void accessCS (int type){
+    ticket ticket;
+    funcion(TYPE_ENTRO,ticket);
     if(type == 0){
         getchar();
         return;
     } else {
         usleep(100*1000);
     }
+    funcion(TYPE_SALGO,ticket);
+
 }
 
 void initNode(int argc, char *argv[]) {

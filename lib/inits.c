@@ -7,6 +7,7 @@
 #include "../headers/inits.h"
 
 #define NODE_INITIAL_KEY 10000
+#define COMMON_MAILBOX_KEY 283300
 
 void initMailBoxes(int nodeID) {
     int key= nodeID + NODE_INITIAL_KEY;
@@ -16,6 +17,16 @@ void initMailBoxes(int nodeID) {
         printf("Error buzón\n");
         exit (-1);
     }
+
+
+     msqid = msgget(COMMON_MAILBOX_KEY, 0666 | IPC_CREAT);
+    if (msqid == -1)
+    {
+        printf("Error buzón\n");
+        exit (-1);
+    }
+
+
 }
 
 void initSemaphores(sem_t *semMaxPetition, sem_t *semWantTo, sem_t *semPending, sem_t *semTicket) {
