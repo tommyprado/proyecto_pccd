@@ -32,8 +32,6 @@ int main(int argc, char *argv[]) {
         }
     }
     fclose(fp);
-    //escribir!!!
-
     escribir();
 
 
@@ -97,4 +95,11 @@ FILE * getFile(int argc, char *argv[]) {
 
 void printArgumentError() {
     printf("Wrong argument number.\nUsage: ./launcher ./path/to/config/file");
+}
+
+
+void pintar(){
+        FILE * ventanaGnuplot = popen ("gnuplot -persist", "w");
+        fprintf(ventanaGnuplot, "%s \n", "load \"pintargraficas.plot\"");
+        int fclose (FILE *ventanaGnuplot);
 }
