@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <sys/msg.h>
 #include "headers/ticketUtils.h"
 #include "headers/coms.h"
@@ -10,26 +9,24 @@
 #define COMMON_MAILBOX_KEY 283300
 #define TYPE_ENTRO 3
 #define TYPE_SALGO 4
+#define LINE_LIMIT 200
 
-
-
-
-
-void getConfString(int argc, char **argv, char *returnString);
 void printArgumentError();
 
 FILE * getFile(int argc, char *argv[]) ;
 
 char *getNextLine(FILE *fp, char *nextLine) ;
 
+void processLine(char line[LINE_LIMIT]);
+
 void escribir();
 
 int main(int argc, char *argv[]) {
     FILE *fp = getFile(argc, argv);
     while (1) {
-        char nextLine[200];
+        char nextLine[LINE_LIMIT];
         if(getNextLine(fp, nextLine) != NULL) {
-
+            processLine(nextLine);
         } else {
             break;
         }
@@ -41,6 +38,22 @@ int main(int argc, char *argv[]) {
 
 
     return 0;
+}
+
+void processLine(char line[LINE_LIMIT]) {
+    char *found;
+    char split[20][20];
+    int cont = 0;
+    while( (found = strsep(&line," \n")) != NULL ) {
+        if (strcmp(found, "") != 0) {
+            strcpy(split[cont], found);
+            cont++;
+        }
+    }
+    if (strcmp(split[0], "#") == 0) {
+        int nodeCount = atoi(split[1]);
+        printf("%d\n", nodeCount);
+    }
 }
 
 void escribir() {
@@ -64,7 +77,7 @@ void escribir() {
 
 
 char *getNextLine(FILE *fp, char *nextLine) {
-    return fgets(nextLine, 200, fp);
+    return fgets(nextLine, LINE_LIMIT, fp);
 }
 
 FILE * getFile(int argc, char *argv[]) {
@@ -84,9 +97,4 @@ FILE * getFile(int argc, char *argv[]) {
 
 void printArgumentError() {
     printf("Wrong argument number.\nUsage: ./launcher ./path/to/config/file");
-}
-
-
-bool startsWith(const char *a, const char *b){
-    return strncmp(a, b, strlen(b)) == 0;
 }
