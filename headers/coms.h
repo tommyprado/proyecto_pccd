@@ -17,4 +17,6 @@ void sendReply (ticket ticket);
 
 void replyAllPending (sem_t *semPending, int *pendingRequestsCount, ticket * pendingRequestsArray, int nodeID);
 
+int getMsqid(int i);
+
 #endif //PROYECTO_COMS_H

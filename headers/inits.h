@@ -3,7 +3,7 @@
 
 void initMailBoxes(int nodeID);
 
-void initSemaphores(sem_t *semMaxPetition, sem_t *semWantTo, sem_t *semPending);
+void initSemaphores(sem_t *semMaxPetition, sem_t *semWantTo, sem_t *semPending, sem_t *semTicket);
 
 void initReceptor(void *(*f)(void *arg));
 

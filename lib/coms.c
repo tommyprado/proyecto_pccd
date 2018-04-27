@@ -15,30 +15,32 @@ typedef struct {
 } messageBuff;
 
 void sendReply (ticket ticket){
+    int msqid = getMsqid(ticket.nodeID);
     messageBuff message;
     message.mtype = TYPE_REPLY;
     message.ticket = ticket;
-    int msg = msgsnd(ticket.nodeID+NODE_INITIAL_KEY, &message, sizeof(ticket), 0);
+    int msg = msgsnd(msqid, &message, sizeof(ticket), 0);
     if(msg == -1) {
         printf("Error al enviar el ticket\n");
         exit(1);
     }
 }
 
-ticket receiveRequest (int nodeID){
+ticket receiveRequest (int nodeID) {
     messageBuff message;
-    msgrcv(NODE_INITIAL_KEY + nodeID, &message, sizeof(ticket), TYPE_REQUEST, 0);
+    int msqid = getMsqid(nodeID);
+    msgrcv(msqid, &message, sizeof(ticket), TYPE_REQUEST, 0);
+    return message.ticket;
 }
 
 void sendRequests(ticket ticket, int nodeID, int totalNodes){
-    int msgQueue = NODE_INITIAL_KEY + nodeID;
-    for(int node = 1; node < totalNodes; node++){
-        printf("Enviamos el ticket al nodo %i\n", node);
-        if(!node == nodeID){
+    for(int node = 1; node < totalNodes + 1; node++){
+        if(node != nodeID){
+            int msqid = getMsqid(node);
             messageBuff message;
             message.mtype = TYPE_REQUEST;
             message.ticket = ticket;
-            int msg = msgsnd(msgQueue, &message, sizeof(ticket), 0);
+            int msg = msgsnd(msqid, &message, sizeof(ticket), 0);
             if(msg == -1) {
                 printf("Error al enviar el ticket\n");
                 exit(1);
@@ -48,14 +50,16 @@ void sendRequests(ticket ticket, int nodeID, int totalNodes){
 }
 
 void replyAllPending (sem_t *semPending, int *pendingRequestsCount, ticket * pendingRequestsArray, int nodeID){
-    int msgQueue = NODE_INITIAL_KEY + nodeID;
     sem_wait(semPending);
-    for(int i=0;i < *pendingRequestsCount;i++){
-        if( (msgsnd(msgQueue, &pendingRequestsArray[i], sizeof(pendingRequestsArray[i])-sizeof(long), 0)) == -1) {
+    for(int i=0; i < *pendingRequestsCount; i++){
+        ticket ticket = pendingRequestsArray[i];
+        int msqid = getMsqid(ticket.nodeID);
+        messageBuff message;
+        message.mtype = TYPE_REPLY;
+        message.ticket = ticket;
+        if(msgsnd(msqid, &message, sizeof(ticket), 0) == -1) {
             printf("Error al invocar 'msgrcv()'.\n");
             exit(0);
-        } else {
-            printf("Ticket nº %i retirado correctamente.\n", &i);
         }
     }
     *pendingRequestsCount = 0;
@@ -63,6 +67,20 @@ void replyAllPending (sem_t *semPending, int *pendingRequestsCount, ticket * pen
 }
 
 void receiveReply (int nodeID){
+    int msqid = getMsqid(nodeID);
     messageBuff message;
-    msgrcv(NODE_INITIAL_KEY + nodeID, &message, sizeof(ticket), TYPE_REPLY, 0);
+    msgrcv(msqid, &message, sizeof(ticket), TYPE_REPLY, 0);
 }
+
+int getMsqid(int nodeID) {
+    int key= nodeID + NODE_INITIAL_KEY;
+    int msqid = msgget(key, 0666);
+    if (msqid == -1)
+    {
+        printf("Error recuperando buzón\n");
+        exit (-1);
+    }
+    return msqid;
+}
+
+

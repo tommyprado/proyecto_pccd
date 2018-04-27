@@ -15,6 +15,8 @@
 
 #define PENDING_REQUESTS_LIMIT 1000000
 #define NODE_INITIAL_KEY 10000
+#define RECEPTOR_TAG "RECEPTOR> "
+#define MAIN_TAG "MAIN> "
 
 void setWantTo (int value);
 
@@ -28,42 +30,57 @@ void updateMaxPetitionID (int petitionId);
 
 void saveRequest (ticket ticket);
 
+void doStuff(int type) ;
+
 int totalNodes, maxPetition, wantTo, nodeID;
-sem_t semMaxPetition, semWantTo, semPending;
+sem_t semMaxPetition, semWantTo, semPending, semTicket;
 ticket pendingRequestsArray[PENDING_REQUESTS_LIMIT];
 int pendingRequestsCount;
-ticket biggestTicket;
+ticket myTicket;
 
 int main(int argc, char *argv[]){
     initNode(argc, argv);
     while (1) {
+        printf("%sMoviendo papeles...\n", MAIN_TAG);
+        doStuff(0);
+        printf("%sIntentando acceder a la sección crítica...\n", MAIN_TAG);
         setWantTo(1);
-        ticket ticket = createTicket(nodeID, &maxPetition, &semMaxPetition);
-        sendRequests(ticket, nodeID, totalNodes);
-        int countReply = 0;
+        sem_wait(&semTicket);
+        myTicket = createTicket(nodeID, &maxPetition, &semMaxPetition);
+        sendRequests(myTicket, nodeID, totalNodes);
+        sem_post(&semTicket);
+        int countReply = 1;
         while (countReply < totalNodes) {
             receiveReply(nodeID);
+            printf("%sReply recibido\n", MAIN_TAG);
             countReply++;
         }
-
+        printf("%sAccediendo a la sección crítica...\n", MAIN_TAG);
         accessCS(0);
-
+        printf("%sFuera de la sección crítica\n", MAIN_TAG);
         setWantTo(0);
+        printf("%sRespondiendo a Requests pendientes...\n", MAIN_TAG);
         replyAllPending(&semPending, &pendingRequestsCount, pendingRequestsArray, nodeID);
     }
 }
 
 void * receptorMain(void *arg) {
     while(1) {
+        printf("%sEsperando a recibir mensaje\n", RECEPTOR_TAG);
         ticket originTicket = receiveRequest(nodeID);
+        printf("%sMensaje recibido\n", RECEPTOR_TAG);
         updateMaxPetitionID(maxPetition);
         sem_wait(&semWantTo);
-
-        if(wantTo && (compTickets(biggestTicket, originTicket) == 1) ) {
+        sem_wait(&semTicket);
+        if(!wantTo || wantTo && (compTickets(myTicket, originTicket) == 1) ) { // myTicket > originTicket?
+            sem_post(&semTicket);
             sem_post(&semWantTo);
-            sendReply(biggestTicket);
+            printf("%sEnviando reply\n", RECEPTOR_TAG);
+            sendReply(originTicket);
         } else{
-            saveRequest(biggestTicket);
+            sem_post(&semTicket);
+            printf("%sGuardando request\n", RECEPTOR_TAG);
+            saveRequest(originTicket);
             sem_post(&semWantTo);
         }
     }
@@ -71,9 +88,8 @@ void * receptorMain(void *arg) {
 
 void updateMaxPetitionID (int petitionId){
     sem_wait(&semMaxPetition);
-
-    if(petitionId>maxPetition){
-        maxPetition=petitionId;
+    if(petitionId >= maxPetition){
+        maxPetition = petitionId + 1;
     }
     sem_post(&semMaxPetition);
 }
@@ -91,13 +107,23 @@ void setWantTo (int value){
     sem_post(&semWantTo);
 }
 
-void accessCS (int type){
+void doStuff(int type) {
     if(type == 0){
-        printf("\nEsperando salto de linea...\n");
         getchar();
         return;
+    } else {
+        usleep(100*1000);
     }
-    usleep(100*1000);
+}
+
+void accessCS (int type){
+
+    if(type == 0){
+        getchar();
+        return;
+    } else {
+        usleep(100*1000);
+    }
 }
 
 void initNode(int argc, char *argv[]) {
@@ -111,13 +137,13 @@ void initNode(int argc, char *argv[]) {
         printWrongUsageError();
     }
 
-    initSemaphores(&semMaxPetition, &semWantTo, &semPending);
+    initSemaphores(&semMaxPetition, &semWantTo, &semPending, &semTicket);
     initMailBoxes(nodeID);
     initReceptor(receptorMain);
 }
 
 void printWrongUsageError() {
-    printf("Wrong arguments\nUsage: ./main nodeID totalNodes (nodeID <= totalNodes)");
+    printf("Wrong arguments\nUsage: ./main nodeID totalNodes (nodeID <= totalNodes)\n");
 }
 
 #pragma clang diagnostic pop
