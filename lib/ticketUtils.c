@@ -22,7 +22,7 @@ int compTickets(ticket ticket1, ticket ticket2) {
 
 ticket createTicket (int nodeID, int *maxPetition, sem_t *semaphore){
     sem_wait(semaphore);
-    *maxPetition=*maxPetition++;
+    *maxPetition=(*maxPetition) + 1;
     ticket myTicket = {.nodeID = nodeID, .requestID = *maxPetition};
     sem_post(semaphore);
     return myTicket;

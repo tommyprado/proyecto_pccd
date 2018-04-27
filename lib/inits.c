@@ -6,21 +6,15 @@
 #include <pthread.h>
 #include <sys/shm.h>
 #include "../headers/inits.h"
+#include "../headers/out.h"
+#include "../headers/ticketUtils.h"
 
 #define NODE_INITIAL_KEY 10000
 #define SHM_KEY 20000
-#define WRITE_OUT_QUEUE 283300
 
 void initMailBoxes(int nodeID) {
     int key= nodeID + NODE_INITIAL_KEY;
     int msqid = msgget(key, 0666 | IPC_CREAT);
-    if (msqid == -1)
-    {
-        printf("Error buzón\n");
-        exit (-1);
-    }
-
-    msqid = msgget(WRITE_OUT_QUEUE, 0666 | IPC_CREAT);
     if (msqid == -1)
     {
         printf("Error buzón\n");
@@ -51,6 +45,17 @@ sharedMemStruct *initSharedMemory(int nodeID) {
     initSemaphore(&sharedMemoryPointer->semWantTo);
     initSemaphore(&sharedMemoryPointer->semPending);
     initSemaphore(&sharedMemoryPointer->semMaxPetition);
+
+    ticket ticket;
+    ticket.nodeID = nodeID;
+    ticket.requestID = 0;
+
+    sharedMemoryPointer->wantTo = 0;
+    sharedMemoryPointer->maxPetition = 0;
+    sharedMemoryPointer->pendingRequestsCount = 0;
+    sharedMemoryPointer->myTicket = ticket;
+
+    return sharedMemoryPointer;
 }
 
 sharedMemStruct *getSharedMemory(int nodeID) {

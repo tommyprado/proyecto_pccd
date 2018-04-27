@@ -6,12 +6,12 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-sharedMemStruct sharedMemory;
+sharedMemStruct *sharedMemoryPointer;
 
 char receptorTag[100];
-int nodeID, totalNodes;
+int nodeID;
 
-void updateMaxPetitionID (int petitionId);
+void updateMaxPetition(int petitionId);
 
 void saveRequest (ticket ticket);
 
@@ -25,19 +25,20 @@ int main(int argc, char *argv[]){
         printf("%sEsperando a recibir mensaje\n", receptorTag);
         ticket originTicket = receiveRequest(nodeID);
         printf("%sMensaje recibido\n", receptorTag);
-        updateMaxPetitionID(sharedMemory.maxPetition);
-        sem_wait(&sharedMemory.semWantTo);
-        sem_wait(&sharedMemory.semTicket);
-        if(!sharedMemory.wantTo || sharedMemory.wantTo && (compTickets(sharedMemory.myTicket, originTicket) == 1) ) { // myTicket > originTicket?
-            sem_post(&sharedMemory.semTicket);
-            sem_post(&sharedMemory.semWantTo);
+        updateMaxPetition(sharedMemoryPointer->maxPetition);
+        sem_wait(&sharedMemoryPointer->semWantTo);
+        sem_wait(&sharedMemoryPointer->semTicket);
+        if(!sharedMemoryPointer->wantTo ||
+           (sharedMemoryPointer->wantTo && (compTickets(sharedMemoryPointer->myTicket, originTicket) == 1))) { // myTicket > originTicket?
+            sem_post(&sharedMemoryPointer->semTicket);
+            sem_post(&sharedMemoryPointer->semWantTo);
             printf("%sEnviando reply\n", receptorTag);
             sendReply(originTicket);
         } else{
-            sem_post(&sharedMemory.semTicket);
+            sem_post(&sharedMemoryPointer->semTicket);
             printf("%sGuardando request\n", receptorTag);
             saveRequest(originTicket);
-            sem_post(&sharedMemory.semWantTo);
+            sem_post(&sharedMemoryPointer->semWantTo);
         }
     }
 }
@@ -48,32 +49,28 @@ void initReceptor(int argc, char *argv[]) {
         exit(0);
     }
     nodeID = atoi(argv[1]);
-    totalNodes = atoi(argv[2]);
-    if (nodeID > totalNodes) {
-        printWrongUsageError();
-    }
     sprintf(receptorTag, "RECEPTOR %d> ", nodeID);
     initMailBoxes(nodeID);
-    sharedMemory = *initSharedMemory(nodeID);
+    sharedMemoryPointer = initSharedMemory(nodeID);
 }
 
 void printWrongUsageError() {
-    printf("Wrong arguments\nUsage: ./main nodeID totalNodes mode (nodeID <= totalNodes)\n");
+    printf("Wrong arguments\nUsage: ./Receptor nodeID\n");
 }
 
-void updateMaxPetitionID (int petitionId){
-    sem_wait(&sharedMemory.semMaxPetition);
-    if(petitionId >= sharedMemory.maxPetition){
-        sharedMemory.maxPetition = petitionId + 1;
+void updateMaxPetition(int petitionId){
+    sem_wait(&sharedMemoryPointer->semMaxPetition);
+    if(petitionId >= sharedMemoryPointer->maxPetition){
+        sharedMemoryPointer->maxPetition = petitionId + 1;
     }
-    sem_post(&sharedMemory.semMaxPetition);
+    sem_post(&sharedMemoryPointer->semMaxPetition);
 }
 
 void saveRequest (ticket ticket){
-    sem_wait(&sharedMemory.semPending);
-    sharedMemory.pendingRequestsArray[sharedMemory.pendingRequestsCount] = ticket;
-    sharedMemory.pendingRequestsCount++;
-    sem_post(&sharedMemory.semPending);
+    sem_wait(&sharedMemoryPointer->semPending);
+    sharedMemoryPointer->pendingRequestsArray[sharedMemoryPointer->pendingRequestsCount] = ticket;
+    sharedMemoryPointer->pendingRequestsCount++;
+    sem_post(&sharedMemoryPointer->semPending);
 }
 
 #pragma clang diagnostic pop

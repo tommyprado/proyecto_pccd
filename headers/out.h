@@ -11,4 +11,6 @@ void sndMsgOut(int type, ticket ticket);
 
 void writeOut();
 
+void initMessageQueue ();
+
 #endif //PROYECTO_OUT_H

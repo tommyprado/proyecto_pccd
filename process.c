@@ -18,9 +18,7 @@
 #define PENDING_REQUESTS_LIMIT 1000000
 #define NODE_INITIAL_KEY 10000
 
-#define SC_WAIT 100
-
-
+#define SC_WAIT 10000
 
 void setWantTo (int value);
 
@@ -28,13 +26,13 @@ void initNode(int argc, char *argv[]);
 
 void printWrongUsageError();
 
-void updateMaxPetitionID (int petitionId);
+void updateMaxPetition(int petitionId);
 
 void saveRequest (ticket ticket);
 
 void accessCS (ticket ticket);
 
-sharedMemStruct sharedMemory;
+sharedMemStruct *sharedMemoryPointer;
 
 int totalNodes, nodeID;
 
@@ -44,10 +42,10 @@ int main(int argc, char *argv[]){
     initNode(argc, argv);
     printf("%sIntentando acceder a la sección crítica...\n", mainTag);
     setWantTo(1);
-    sem_wait(&sharedMemory.semTicket);
-    sharedMemory.myTicket = createTicket(nodeID, &sharedMemory.maxPetition, &sharedMemory.semMaxPetition);
-    sendRequests(sharedMemory.myTicket, nodeID, totalNodes);
-    sem_post(&sharedMemory.semTicket);
+    sem_wait(&sharedMemoryPointer->semTicket);
+    sharedMemoryPointer->myTicket = createTicket(nodeID, &sharedMemoryPointer->maxPetition, &sharedMemoryPointer->semMaxPetition);
+    sendRequests(sharedMemoryPointer->myTicket, nodeID, totalNodes);
+    sem_post(&sharedMemoryPointer->semTicket);
     int countReply = 1;
     while (countReply < totalNodes) {
         receiveReply(nodeID);
@@ -55,23 +53,23 @@ int main(int argc, char *argv[]){
         countReply++;
     }
     printf("%sAccediendo a la sección crítica...\n", mainTag);
-    accessCS(sharedMemory.myTicket);
+    accessCS(sharedMemoryPointer->myTicket);
     printf("%sFuera de la sección crítica\n", mainTag);
     setWantTo(0);
     printf("%sRespondiendo a Requests pendientes...\n", mainTag);
-    replyAllPending(&sharedMemory.semPending, &sharedMemory.pendingRequestsCount, sharedMemory.pendingRequestsArray, nodeID);
+    replyAllPending(&sharedMemoryPointer->semPending, &sharedMemoryPointer->pendingRequestsCount, sharedMemoryPointer->pendingRequestsArray, nodeID);
 }
 
 void setWantTo (int value){
-    sem_wait(&sharedMemory.semWantTo);
-    sharedMemory.wantTo=value;
-    sem_post(&sharedMemory.semWantTo);
+    sem_wait(&sharedMemoryPointer->semWantTo);
+    sharedMemoryPointer->wantTo=value;
+    sem_post(&sharedMemoryPointer->semWantTo);
 }
 
 void accessCS (ticket ticket){
-    sndMsgOut(TYPE_ENTRO, ticket);
+//    sndMsgOut(TYPE_ENTRO, ticket);
     usleep(SC_WAIT * 1000);
-    sndMsgOut(TYPE_SALGO, ticket);
+//    sndMsgOut(TYPE_SALGO, ticket);
 }
 
 void initNode(int argc, char *argv[]) {
@@ -86,11 +84,11 @@ void initNode(int argc, char *argv[]) {
     }
     sprintf(mainTag, "MAIN %d> ", nodeID);
 
-    sharedMemory = *getSharedMemory(nodeID);
+    sharedMemoryPointer = getSharedMemory(nodeID);
 }
 
 void printWrongUsageError() {
-    printf("Wrong arguments\nUsage: ./main nodeID totalNodes mode (nodeID <= totalNodes)\n");
+    printf("Wrong arguments\nUsage: ./Process nodeID totalNodes mode (nodeID <= totalNodes)\n");
 }
 
 #pragma clang diagnostic pop

@@ -37,3 +37,12 @@ void writeOut() {
         fprintf(fileSC, "%li 0\n", message.t);
     }
 }
+
+void initMessageQueue () {
+    int msqid = msgget(WRITE_OUT_QUEUE, 0666 | IPC_CREAT);
+    if (msqid == -1)
+    {
+        printf("Error buzón\n");
+        exit (-1);
+    }
+}
