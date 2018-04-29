@@ -8,8 +8,6 @@
 
 
 void sndMsgOut(int type, ticket ticket) {
-
-
     long long int t = tiempoActual();
 
     launcherMessage message;
@@ -18,16 +16,22 @@ void sndMsgOut(int type, ticket ticket) {
     message.t = t;
 
     int msqid = getMsqid(LAUNCHER_QUEUE);
-    if(msgsnd(msqid, &message, sizeof(ticket)+sizeof(t), 0) == -1) {
+    if(msgsnd(msqid, &message, sizeof(message) - sizeof(long), 0) == -1) {
         printf("Error al invocar 'msgrcv()'.\n");
         exit(0);
     }
 }
 
+void getMsgOut(int type) {
+    launcherMessage message;
+    int msqid = getMsqid(LAUNCHER_QUEUE);
+    msgrcv(msqid, &message, sizeof(message) - sizeof(long), type, 0);
+}
+
 void writeOut() {
     launcherMessage message;
     int msqid = getMsqid(LAUNCHER_QUEUE);
-    msgrcv(msqid, &message, sizeof(ticket), 0, 0);
+    msgrcv(msqid, &message, sizeof(message) - sizeof(long), 0, 0);
     if(message.mtype == TYPE_ACCESS_CS){
         FILE * fileSC = fopen("pagos.dat", "w");
         fprintf(fileSC, "%lli 1\n", message.t);

@@ -8,12 +8,12 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-sharedMemStruct *sharedMemoryPointer;
+sharedMemory *sharedMemoryPointer;
 
 char receptorTag[100];
 int nodeID;
 
-void updateMaxPetition(int petitionId);
+void updateRequestID(int originRequestID);
 
 void saveRequest (ticket ticket);
 
@@ -24,23 +24,18 @@ void printWrongUsageError();
 int main(int argc, char *argv[]){
     initReceptor(argc, argv);
     while(1) {
-        printf("%sEsperando a recibir mensaje\n", receptorTag);
         ticket originTicket = receiveRequest(nodeID);
-        printf("%sMensaje recibido de %d\n", receptorTag, originTicket.pid);
-        updateMaxPetition(sharedMemoryPointer->maxPetition);
-        sem_wait(&sharedMemoryPointer->semWantTo);
-        sem_wait(&sharedMemoryPointer->semTicket);
-        if(!sharedMemoryPointer->wantTo ||
-           (sharedMemoryPointer->wantTo && (compTickets(sharedMemoryPointer->myTicket, originTicket) == 1))) { // myTicket > originTicket?
-            sem_post(&sharedMemoryPointer->semTicket);
-            sem_post(&sharedMemoryPointer->semWantTo);
+        updateRequestID(sharedMemoryPointer->maxRequestID);
+        sem_wait(&sharedMemoryPointer->nodeStatusSem);
+        if(!sharedMemoryPointer->hasProcesses ||
+           (sharedMemoryPointer->hasProcesses && (compTickets(sharedMemoryPointer->competitorTicket, originTicket) == 1))) { // competitorTicket > originTicket?
+            sem_post(&sharedMemoryPointer->nodeStatusSem);
             printf("%sEnviando reply a %d\n", receptorTag, originTicket.pid);
             sendReply(originTicket);
         } else{
-            sem_post(&sharedMemoryPointer->semTicket);
-            printf("%sGuardando request\n", receptorTag);
+            sem_post(&sharedMemoryPointer->nodeStatusSem);
+            printf("%sGuardando request de %d\n", receptorTag, originTicket.pid);
             saveRequest(originTicket);
-            sem_post(&sharedMemoryPointer->semWantTo);
         }
     }
 }
@@ -61,19 +56,17 @@ void printWrongUsageError() {
     printf("Wrong arguments\nUsage: ./Receptor nodeID\n");
 }
 
-void updateMaxPetition(int petitionId){
-    sem_wait(&sharedMemoryPointer->semMaxPetition);
-    if(petitionId >= sharedMemoryPointer->maxPetition){
-        sharedMemoryPointer->maxPetition = petitionId + 1;
+void updateRequestID(int originRequestID){
+    sem_wait(&sharedMemoryPointer->competitorTicketSem);
+    if(originRequestID >= sharedMemoryPointer->maxRequestID){
+        sharedMemoryPointer->maxRequestID = originRequestID + 1;
     }
-    sem_post(&sharedMemoryPointer->semMaxPetition);
+    sem_post(&sharedMemoryPointer->competitorTicketSem);
 }
 
 void saveRequest (ticket ticket){
-    sem_wait(&sharedMemoryPointer->semPending);
     sharedMemoryPointer->pendingRequestsArray[sharedMemoryPointer->pendingRequestsCount] = ticket;
     sharedMemoryPointer->pendingRequestsCount++;
-    sem_post(&sharedMemoryPointer->semPending);
 }
 
 #pragma clang diagnostic pop

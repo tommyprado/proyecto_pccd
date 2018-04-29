@@ -20,48 +20,49 @@ void initMailBoxes(int nodeID) {
     }
 }
 
-void initSemaphore(sem_t *semaphore) {
-    int err = sem_init(semaphore, 0, 1);
+void initSemaphore(sem_t *semaphore, int limit) {
+    int err = sem_init(semaphore, 0, limit);
     if (err) {
         printf("Error inicializando semáforos\n");
         exit(1);
     }
 }
 
-sharedMemStruct *initSharedMemory(int nodeID) {
+sharedMemory *initSharedMemory(int nodeID) {
     int key = SHM_KEY + nodeID;
-    int id = shmget(key, sizeof(sharedMemStruct), IPC_CREAT | 0666);
+    int id = shmget(key, sizeof(sharedMemory), IPC_CREAT | 0666);
     if (id < 0) {
         printf("shmget error\n");
         exit(1);
     }
 
-    sharedMemStruct *sharedMemoryPointer;
-    sharedMemoryPointer = (sharedMemStruct *) shmat(id, NULL, 0);
+    sharedMemory *sharedMemoryPointer;
+    sharedMemoryPointer = (sharedMemory *) shmat(id, NULL, 0);
 
-    initSemaphore(&sharedMemoryPointer->semTicket);
-    initSemaphore(&sharedMemoryPointer->semWantTo);
-    initSemaphore(&sharedMemoryPointer->semPending);
-    initSemaphore(&sharedMemoryPointer->semMaxPetition);
+    initSemaphore(&sharedMemoryPointer->nodeStatusSem, 1);
+    initSemaphore(&sharedMemoryPointer->competitorTicketSem, 1);
+    initSemaphore(&sharedMemoryPointer->allowNextCSPassSem, 0);
 
     ticket ticket;
     ticket.nodeID = nodeID;
     ticket.requestID = 0;
+    sharedMemoryPointer->competitorTicket = ticket;
 
-    sharedMemoryPointer->wantTo = 0;
-    sharedMemoryPointer->maxPetition = 0;
+    sharedMemoryPointer->maxRequestID = 0;
     sharedMemoryPointer->pendingRequestsCount = 0;
-    sharedMemoryPointer->myTicket = ticket;
+    sharedMemoryPointer->pendingProcessesCount = 0;
+
+    sharedMemoryPointer->hasProcesses = false;
 
     return sharedMemoryPointer;
 }
 
-sharedMemStruct *getSharedMemory(int nodeID) {
+sharedMemory *getSharedMemory(int nodeID) {
     int key = SHM_KEY + nodeID;
-    int id = shmget(key, sizeof(sharedMemStruct), IPC_CREAT | 0666);
+    int id = shmget(key, sizeof(sharedMemory), IPC_CREAT | 0666);
     if (id < 0) {
         printf("shmget error\n");
         exit(1);
     }
-    return (sharedMemStruct *) shmat(id, NULL, 0);
+    return (sharedMemory *) shmat(id, NULL, 0);
 }

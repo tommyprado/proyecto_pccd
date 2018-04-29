@@ -14,7 +14,7 @@ long long int tiempoActual(){
     else {
         tiempo = -1;
     }
-    printf("%lld tiempo inicio ->\n", tiempo);
+//    printf("%lld tiempo inicio ->\n", tiempo);
 
     return tiempo;
 }

@@ -18,4 +18,6 @@ void receiveReceptorConfirmation ();
 
 void sendReceptorConfirmation ();
 
+void getMsgOut(int type);
+
 #endif //PROYECTO_OUT_H

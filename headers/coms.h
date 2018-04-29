@@ -1,4 +1,5 @@
 #include "ticketUtils.h"
+#include "inits.h"
 
 #ifndef PROYECTO_COMS_H
 #define PROYECTO_COMS_H
@@ -19,13 +20,13 @@ typedef struct {
 
 ticket receiveRequest (int nodeID);
 
-void sendRequests(ticket ticket, int nodeID, int totalNodes);
+void sendRequests(ticket ticket, int totalNodes);
 
 void receiveReply(int nodeID, int i);
 
 void sendReply (ticket ticket);
 
-void replyAllPending (sem_t *semPending, int *pendingRequestsCount, ticket * pendingRequestsArray, int nodeID);
+void replyAllPending (sharedMemory *sharedMemory);
 
 int getNodeReplyMsqid(int nodeID);
 

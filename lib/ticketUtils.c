@@ -1,4 +1,5 @@
 #include <semaphore.h>
+#include <stdio.h>
 #include "../headers/ticketUtils.h"
 
 int compTickets(ticket ticket1, ticket ticket2) {
@@ -20,10 +21,6 @@ int compTickets(ticket ticket1, ticket ticket2) {
     return 0;
 }
 
-ticket createTicket(int nodeID, int pid, int *maxPetition, sem_t *semaphore) {
-    sem_wait(semaphore);
-    *maxPetition=(*maxPetition) + 1;
-    ticket myTicket = {.nodeID = nodeID, .requestID = *maxPetition, .pid=pid};
-    sem_post(semaphore);
-    return myTicket;
+void ticketToString(char *string, ticket ticket) {
+    sprintf(string, "[%d, %d, %d]", ticket.requestID, ticket.nodeID, ticket.pid);
 }
