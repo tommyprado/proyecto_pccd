@@ -7,7 +7,7 @@ typedef struct
 {
     int nodeID;
     int requestID;
-
+    int pid;
 } ticket;
 
 int compTickets(ticket ticket1, ticket ticket2);

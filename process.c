@@ -16,7 +16,7 @@
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
 #define PENDING_REQUESTS_LIMIT 1000000
-#define NODE_INITIAL_KEY 10000
+#define NODE_REQUEST_BASE 10000
 
 #define SC_WAIT 1000
 
@@ -39,6 +39,7 @@ int totalNodes, nodeID;
 char mainTag[100];
 
 int main(int argc, char *argv[]){
+    int pid = getpid();
     initNode(argc, argv);
     printf("%sIntentando acceder a la sección crítica...\n", mainTag);
     setWantTo(1);
@@ -48,7 +49,7 @@ int main(int argc, char *argv[]){
     sem_post(&sharedMemoryPointer->semTicket);
     int countReply = 1;
     while (countReply < totalNodes) {
-        receiveReply(nodeID);
+        receiveReply(nodeID, pid);
         printf("%sReply recibido\n", mainTag);
         countReply++;
     }
@@ -67,9 +68,9 @@ void setWantTo (int value){
 }
 
 void accessCS (ticket ticket){
-//    sndMsgOut(TYPE_ENTRO, ticket);
+    sndMsgOut(TYPE_ENTRO, ticket);
     usleep(SC_WAIT * 1000);
-//    sndMsgOut(TYPE_SALGO, ticket);
+    sndMsgOut(TYPE_SALGO, ticket);
 }
 
 void initNode(int argc, char *argv[]) {
@@ -82,7 +83,7 @@ void initNode(int argc, char *argv[]) {
     if (nodeID > totalNodes) {
         printWrongUsageError();
     }
-    sprintf(mainTag, "MAIN %d> ", nodeID);
+    sprintf(mainTag, "PROCESS %d> ", nodeID);
 
     sharedMemoryPointer = getSharedMemory(nodeID);
 }

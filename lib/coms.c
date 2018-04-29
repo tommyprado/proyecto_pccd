@@ -7,23 +7,9 @@
 #define TYPE_REQUEST 1
 #define TYPE_REPLY 2
 
-#define NODE_INITIAL_KEY 10000
-
-void sendReply (ticket ticket){
-    int msqid = getMsqid(ticket.nodeID);
-    ticketMessage message;
-    message.mtype = TYPE_REPLY;
-    message.ticket = ticket;
-    int msg = msgsnd(msqid, &message, sizeof(ticket), 0);
-    if(msg == -1) {
-        printf("Error al enviar el ticket\n");
-        exit(1);
-    }
-}
-
 ticket receiveRequest (int nodeID) {
     ticketMessage message;
-    int msqid = getMsqid(nodeID);
+    int msqid = getNodeReplyMsqid(nodeID);
     msgrcv(msqid, &message, sizeof(ticket), TYPE_REQUEST, 0);
     return message.ticket;
 }
@@ -31,7 +17,7 @@ ticket receiveRequest (int nodeID) {
 void sendRequests(ticket ticket, int nodeID, int totalNodes){
     for(int node = 1; node < totalNodes + 1; node++){
         if(node != nodeID){
-            int msqid = getMsqid(node);
+            int msqid = getNodeReplyMsqid(node);
             ticketMessage message;
             message.mtype = TYPE_REQUEST;
             message.ticket = ticket;
@@ -44,31 +30,57 @@ void sendRequests(ticket ticket, int nodeID, int totalNodes){
     }
 }
 
+void sendReply (ticket ticket){
+    int msqid = getNodeReplyMsqid(ticket.nodeID);
+    ticketMessage message;
+    message.mtype = TYPE_REPLY;
+    message.ticket = ticket;
+    int msg = msgsnd(msqid, &message, sizeof(ticket), 0);
+    if(msg == -1) {
+        printf("Error al enviar el ticket\n");
+        exit(1);
+    }
+}
+
 void replyAllPending (sem_t *semPending, int *pendingRequestsCount, ticket * pendingRequestsArray, int nodeID){
     sem_wait(semPending);
     for(int i=0; i < *pendingRequestsCount; i++){
-        ticket ticket = pendingRequestsArray[i];
-        int msqid = getMsqid(ticket.nodeID);
-        ticketMessage message;
-        message.mtype = TYPE_REPLY;
-        message.ticket = ticket;
-        if(msgsnd(msqid, &message, sizeof(ticket), 0) == -1) {
-            printf("Error al invocar 'msgrcv()'.\n");
-            exit(0);
-        }
+        sendReply(pendingRequestsArray[i]);
     }
     *pendingRequestsCount = 0;
     sem_post(semPending);
 }
 
-void receiveReply (int nodeID){
-    int msqid = getMsqid(nodeID);
+void receiveReply(int nodeID, int pid) {
+    int msqid = getNodeReplyMsqid(nodeID);
     ticketMessage message;
-    msgrcv(msqid, &message, sizeof(ticket), TYPE_REPLY, 0);
+    msgrcv(msqid, &message, sizeof(ticket), pid, 0);
 }
 
-int getMsqid(int nodeID) {
-    int key= nodeID + NODE_INITIAL_KEY;
+int getNodeReplyMsqid(int nodeID) {
+    int key= nodeID + NODE_REPLY_BASE;
+    int msqid = msgget(key, 0666);
+    if (msqid == -1)
+    {
+        printf("Error recuperando buzón\n");
+        exit (-1);
+    }
+    return msqid;
+}
+
+int getNodeRequestMsqid(int nodeID) {
+    int key= nodeID + NODE_REQUEST_BASE;
+    int msqid = msgget(key, 0666);
+    if (msqid == -1)
+    {
+        printf("Error recuperando buzón\n");
+        exit (-1);
+    }
+    return msqid;
+}
+
+
+int getMsqid(int key) {
     int msqid = msgget(key, 0666);
     if (msqid == -1)
     {
