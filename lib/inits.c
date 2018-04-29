@@ -5,17 +5,15 @@
 #include <sys/msg.h>
 #include <pthread.h>
 #include <sys/shm.h>
+#include "../headers/coms.h"
 #include "../headers/inits.h"
 #include "../headers/out.h"
 #include "../headers/ticketUtils.h"
 
-#define NODE_INITIAL_KEY 10000
 #define SHM_KEY 20000
 
 void initMailBoxes(int nodeID) {
-    int key= nodeID + NODE_INITIAL_KEY;
-    int msqid = msgget(key, 0666 | IPC_CREAT);
-    if (msqid == -1)
+    if (msgget(nodeID + NODE_REQUEST_BASE, 0666 | IPC_CREAT) == -1 || msgget(nodeID + NODE_REPLY_BASE, 0666 | IPC_CREAT) == -1)
     {
         printf("Error buzón\n");
         exit (-1);

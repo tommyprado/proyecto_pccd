@@ -10,15 +10,22 @@
 
 #define LINE_LIMIT 200
 
+#define LAUNCHER_TAG "LAUNCHER>"
+
 void printArgumentError();
 
 FILE * getFile(int argc, char *argv[]) ;
 
 void processLine(char line[LINE_LIMIT]);
 
+void execReceptor(int node);
+
 void execProcess(int node, int nodeCount);
 
+int nodeCount = 0;
+
 int main(int argc, char *argv[]) {
+    initMessageQueue();
     FILE *fp = getFile(argc, argv);
     char nextLine[LINE_LIMIT];
     while (1) {
@@ -43,20 +50,40 @@ void processLine(char line[LINE_LIMIT]) {
             cont++;
         }
     }
+
     if (strcmp(split[0], "#") == 0) {
-        int nodeCount = atoi(split[1]);
+        nodeCount = atoi(split[1]);
         for (int i = 0; i < nodeCount; ++i) {
             if (fork() == 0){
-                execProcess(i + 1, nodeCount);
+                execReceptor(i + 1);
             }
         }
+        printf("%sLanzando %d receptores\n", LAUNCHER_TAG, nodeCount);
+    } else if (strcmp(split[0], "+") == 0) {
+        int node = atoi(split[1]);
+//        int type = convertType(split[2]);
+        int count = atoi(split[3]);
+        for (int i = 0; i < count; ++i) {
+            if (fork() == 0) {
+                execProcess(node, nodeCount);
+            }
+        }
+        printf("%sLanzando %d procesos\n", LAUNCHER_TAG, count);
+
     }
 }
 
 void execProcess(int node, int nodeCount) {
-    char command[100];
-    sprintf(command, "./Main %d %d 1", node, nodeCount);
-    system(command);
+    char nodeString[100], nodeCountString[100];
+    sprintf(nodeString, "%d", node);
+    sprintf(nodeCountString, "%d", nodeCount);
+    execl("./Process", "./Process", nodeString, nodeCountString, NULL);
+}
+
+void execReceptor(int node) {
+    char nodeString[100];
+    sprintf(nodeString, "%d", node);
+    execl("./Receptor", "./Receptor", nodeString, NULL);
 }
 
 FILE * getFile(int argc, char *argv[]) {
@@ -80,7 +107,7 @@ void printArgumentError() {
 
 
 void pintar(){
-        FILE * ventanaGnuplot = popen ("gnuplot -persist", "w");
-        fprintf(ventanaGnuplot, "%s \n", "load \"pintargraficas.plot\"");
-        int fclose (FILE *ventanaGnuplot);
+    FILE * ventanaGnuplot = popen ("gnuplot -persist", "w");
+    fprintf(ventanaGnuplot, "%s \n", "load \"pintargraficas.plot\"");
+    int fclose (FILE *ventanaGnuplot);
 }

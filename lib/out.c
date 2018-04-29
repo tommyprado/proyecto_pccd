@@ -24,7 +24,7 @@ void sndMsgOut(int type, ticket ticket) {
 
 void writeOut() {
     printMessage message;
-    int msqid = getMsqid(WRITE_OUT_QUEUE);
+    int msqid = getNodeReplyMsqid(WRITE_OUT_QUEUE);
     msgrcv(msqid, &message, sizeof(ticket), 0, 0);
     if(message.mtype == TYPE_ENTRO){
         FILE * fileSC = fopen("pagos.dat", "w");
