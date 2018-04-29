@@ -9,7 +9,7 @@
 
 ticket receiveRequest (int nodeID) {
     ticketMessage message;
-    int msqid = getNodeReplyMsqid(nodeID);
+    int msqid = getNodeRequestMsqid(nodeID);
     msgrcv(msqid, &message, sizeof(ticket), TYPE_REQUEST, 0);
     return message.ticket;
 }
@@ -17,7 +17,7 @@ ticket receiveRequest (int nodeID) {
 void sendRequests(ticket ticket, int nodeID, int totalNodes){
     for(int node = 1; node < totalNodes + 1; node++){
         if(node != nodeID){
-            int msqid = getNodeReplyMsqid(node);
+            int msqid = getNodeRequestMsqid(node);
             ticketMessage message;
             message.mtype = TYPE_REQUEST;
             message.ticket = ticket;

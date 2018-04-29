@@ -7,7 +7,7 @@
 #include <sys/time.h>
 #include "headers/ticketUtils.h"
 #include "headers/coms.h"
-#include "headers/out.h"
+#include "headers/launcherUtils.h"
 
 #define LINE_LIMIT 200
 
@@ -23,9 +23,12 @@ void execReceptor(int node);
 
 void execProcess(int node, int nodeCount);
 
+long long int iniciarReloj();
+
 int nodeCount = 0;
 
 int main(int argc, char *argv[]) {
+    system("ipcrm --all && killall Process && killall Receptor");
 
     long long int tiempoInicio=iniciarReloj();
 
@@ -63,6 +66,9 @@ void processLine(char line[LINE_LIMIT]) {
             }
         }
         printf("%sLanzando %d receptores\n", LAUNCHER_TAG, nodeCount);
+        for (int j = 0; j < nodeCount; ++j) {
+            receiveReceptorConfirmation();
+        }
     } else if (strcmp(split[0], "+") == 0) {
         int node = atoi(split[1]);
 //        int type = convertType(split[2]);

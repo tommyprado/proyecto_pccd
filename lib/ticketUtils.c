@@ -20,10 +20,10 @@ int compTickets(ticket ticket1, ticket ticket2) {
     return 0;
 }
 
-ticket createTicket (int nodeID, int *maxPetition, sem_t *semaphore){
+ticket createTicket(int nodeID, int pid, int *maxPetition, sem_t *semaphore) {
     sem_wait(semaphore);
     *maxPetition=(*maxPetition) + 1;
-    ticket myTicket = {.nodeID = nodeID, .requestID = *maxPetition};
+    ticket myTicket = {.nodeID = nodeID, .requestID = *maxPetition, .pid=pid};
     sem_post(semaphore);
     return myTicket;
 }

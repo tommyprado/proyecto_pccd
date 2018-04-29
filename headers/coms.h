@@ -10,7 +10,7 @@ typedef struct {
     long    mtype;
     ticket  ticket;
     __suseconds_t t;
-} printMessage;
+} launcherMessage;
 
 typedef struct {
     long    mtype;
@@ -27,7 +27,9 @@ void sendReply (ticket ticket);
 
 void replyAllPending (sem_t *semPending, int *pendingRequestsCount, ticket * pendingRequestsArray, int nodeID);
 
-int getNodeReplyMsqid(int i);
+int getNodeReplyMsqid(int nodeID);
+
+int getNodeRequestMsqid(int nodeID);
 
 int getMsqid(int key);
 

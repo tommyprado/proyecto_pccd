@@ -12,6 +12,6 @@ typedef struct
 
 int compTickets(ticket ticket1, ticket ticket2);
 
-ticket createTicket (int nodeID, int *maxPetition, sem_t *semaphore);
+ticket createTicket(int nodeID, int maxPetition, int *semaphore, sem_t *ptr);
 
 #endif //PROYECTO_TICKETUTILS_H
