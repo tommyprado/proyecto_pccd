@@ -14,7 +14,7 @@
 #define PENDING_REQUESTS_LIMIT 1000000
 #define NODE_REQUEST_BASE 10000
 
-#define SC_WAIT 1
+#define SC_WAIT 2
 
 void setWantTo (int value);
 
@@ -67,7 +67,7 @@ void setWantTo (int value){
 void accessCS (ticket ticket){
     sndMsgOut(TYPE_ACCESS_CS, ticket);
     printf("%sEn sección crítica\n", processTag);
-    sleep(1);
+    sleep(SC_WAIT);
     printf("%sSaliendo de sección crítica\n", processTag);
     sndMsgOut(TYPE_EXIT_CS, ticket);
 }

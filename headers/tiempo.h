@@ -1,5 +1,3 @@
-#include "tiempo.h"
-
 #ifndef PROYECTO_TIEMPO_H
 #define PROYECTO_TIEMPO_H
 

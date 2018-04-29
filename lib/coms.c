@@ -33,7 +33,7 @@ void sendRequests(ticket ticket, int nodeID, int totalNodes){
 void sendReply (ticket ticket){
     int msqid = getNodeReplyMsqid(ticket.nodeID);
     ticketMessage message;
-    message.mtype = TYPE_REPLY;
+    message.mtype = ticket.pid;
     message.ticket = ticket;
     int msg = msgsnd(msqid, &message, sizeof(ticket), 0);
     if(msg == -1) {

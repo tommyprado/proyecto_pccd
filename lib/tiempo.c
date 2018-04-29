@@ -1,5 +1,7 @@
 #include "../headers/tiempo.h"
 #include <sys/time.h>
+#include <wchar.h>
+#include <stdio.h>
 
 long long int tiempoActual(){
     struct timeval timer_usec;

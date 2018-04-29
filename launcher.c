@@ -24,8 +24,6 @@ void execReceptor(int node);
 
 void execProcess(int node, int nodeCount);
 
-long long int tiempoActual();
-
 int nodeCount = 0;
 
 int main(int argc, char *argv[]) {
@@ -38,7 +36,9 @@ int main(int argc, char *argv[]) {
     char nextLine[LINE_LIMIT];
     while (1) {
         if((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-            processLine(nextLine);
+            if (strcmp(nextLine, "\n") != 0) {
+                processLine(nextLine);
+            }
         } else {
             break;
         }
@@ -123,11 +123,7 @@ void pintar(){
     int fclose (FILE *ventanaGnuplot);
 }
 
-
-
-
 long long int duracionEjecucion(long long int tiempoInicio){
-
     return tiempoActual()-tiempoInicio;
 }
 
