@@ -1,0 +1,4 @@
+#ifndef PROYECTO_LOGGER_H
+#define PROYECTO_LOGGER_H
+
+#endif //PROYECTO_LOGGER_H

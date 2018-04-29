@@ -1,27 +1,24 @@
+#include "../headers/coms.h"
+#include "../headers/ticketUtils.h"
+#include "../headers/inits.h"
 #include <sys/msg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../headers/coms.h"
-#include "../headers/ticketUtils.h"
-
-#define TYPE_REQUEST 1
-#define TYPE_REPLY 2
 
 ticket receiveRequest (int nodeID) {
     ticketMessage message;
     int msqid = getNodeRequestMsqid(nodeID);
-    msgrcv(msqid, &message, sizeof(ticket), TYPE_REQUEST, 0);
+    msgrcv(msqid, &message, sizeof(message) - sizeof(long), 0, 0);
     return message.ticket;
 }
 
-void sendRequests(ticket ticket, int nodeID, int totalNodes){
+void sendRequests(ticket ticket, int totalNodes){
     for(int node = 1; node < totalNodes + 1; node++){
-        if(node != nodeID){
+        if(node != ticket.nodeID){
             int msqid = getNodeRequestMsqid(node);
             ticketMessage message;
-            message.mtype = TYPE_REQUEST;
             message.ticket = ticket;
-            int msg = msgsnd(msqid, &message, sizeof(ticket), 0);
+            int msg = msgsnd(msqid, &message, sizeof(ticketMessage) - sizeof(long), 0);
             if(msg == -1) {
                 printf("Error al enviar el ticket\n");
                 exit(1);
@@ -30,31 +27,31 @@ void sendRequests(ticket ticket, int nodeID, int totalNodes){
     }
 }
 
-void sendReply (ticket ticket){
+void sendReply (ticket ticket, int originID){
     int msqid = getNodeReplyMsqid(ticket.nodeID);
     ticketMessage message;
     message.mtype = ticket.pid;
     message.ticket = ticket;
-    int msg = msgsnd(msqid, &message, sizeof(ticket), 0);
+    message.origin = originID;
+    int msg = msgsnd(msqid, &message, sizeof(ticketMessage) - sizeof(long), 0);
     if(msg == -1) {
         printf("Error al enviar el ticket\n");
         exit(1);
     }
 }
 
-void replyAllPending (sem_t *semPending, int *pendingRequestsCount, ticket * pendingRequestsArray, int nodeID){
-    sem_wait(semPending);
-    for(int i=0; i < *pendingRequestsCount; i++){
-        sendReply(pendingRequestsArray[i]);
+void replyAllPending (sharedMemory *sharedMemory, int nodeID){
+    for(int i=0; i < sharedMemory->pendingRequestsCount; i++){
+        sendReply(sharedMemory->pendingRequestsArray[i], nodeID);
     }
-    *pendingRequestsCount = 0;
-    sem_post(semPending);
+    sharedMemory->pendingRequestsCount = 0;
 }
 
-void receiveReply(int nodeID, int pid) {
+int receiveReply(int nodeID, int pid) {
     int msqid = getNodeReplyMsqid(nodeID);
     ticketMessage message;
-    msgrcv(msqid, &message, sizeof(ticket), pid, 0);
+    msgrcv(msqid, &message, sizeof(message) - sizeof(long), pid, 0);
+    return message.origin;
 }
 
 int getNodeReplyMsqid(int nodeID) {

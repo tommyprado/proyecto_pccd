@@ -1,7 +1,7 @@
 #ifndef PROYECTO_TIEMPO_H
 #define PROYECTO_TIEMPO_H
 
-long long int tiempoActual();
+long long int getTimestamp();
 
 
 

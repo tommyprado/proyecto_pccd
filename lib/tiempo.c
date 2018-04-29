@@ -1,9 +1,8 @@
 #include "../headers/tiempo.h"
 #include <sys/time.h>
-#include <wchar.h>
-#include <stdio.h>
+#include <stdlib.h>
 
-long long int tiempoActual(){
+long long int getTimestamp(){
     struct timeval timer_usec;
     long long int tiempo;
 
@@ -14,7 +13,7 @@ long long int tiempoActual(){
     else {
         tiempo = -1;
     }
-    printf("%lld tiempo inicio ->\n", tiempo);
+//    printf("%lld tiempo inicio ->\n", tiempo);
 
     return tiempo;
 }

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/msg.h>
-#include <zconf.h>
+#include <unistd.h>
 #include <sys/time.h>
 #include "headers/ticketUtils.h"
 #include "headers/coms.h"
@@ -12,7 +12,7 @@
 
 #define LINE_LIMIT 200
 
-#define LAUNCHER_TAG "LAUNCHER>"
+#define LAUNCHER_TAG "LAUNCHER> "
 
 void printArgumentError();
 
@@ -26,10 +26,12 @@ void execProcess(int node, int nodeCount);
 
 int nodeCount = 0;
 
+int processCount = 0;
+
 int main(int argc, char *argv[]) {
     system("ipcrm --all && killall Process && killall Receptor");
 
-    long long int tiempoInicio=tiempoActual();
+    long long int tiempoInicio = getTimestamp();
 
     initMessageQueue();
     FILE *fp = getFile(argc, argv);
@@ -43,6 +45,10 @@ int main(int argc, char *argv[]) {
             break;
         }
     }
+    for (int i = 0; i < processCount; ++i) {
+        getMsgOut(TYPE_PROCESS_FINISHED);
+    }
+    printf("Todos los procesos pasaron por sección crítica\n");
     fclose(fp);
     writeOut();
     return 0;
@@ -74,13 +80,12 @@ void processLine(char line[LINE_LIMIT]) {
         int node = atoi(split[1]);
 //        int type = convertType(split[2]);
         int count = atoi(split[3]);
+        processCount += count;
         for (int i = 0; i < count; ++i) {
             if (fork() == 0) {
                 execProcess(node, nodeCount);
             }
         }
-        printf("%sLanzando %d procesos\n", LAUNCHER_TAG, count);
-
     }
 }
 
@@ -124,7 +129,7 @@ void pintar(){
 }
 
 long long int duracionEjecucion(long long int tiempoInicio){
-    return tiempoActual()-tiempoInicio;
+    return getTimestamp()-tiempoInicio;
 }
 
 

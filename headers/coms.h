@@ -1,10 +1,11 @@
 #include "ticketUtils.h"
+#include "inits.h"
 
 #ifndef PROYECTO_COMS_H
 #define PROYECTO_COMS_H
 
-#define NODE_REQUEST_BASE 10000
-#define NODE_REPLY_BASE 20000
+#define NODE_REQUEST_BASE 100000
+#define NODE_REPLY_BASE 200000
 
 typedef struct {
     long    mtype;
@@ -15,17 +16,18 @@ typedef struct {
 typedef struct {
     long    mtype;
     ticket  ticket;
+    int origin;
 } ticketMessage;
 
 ticket receiveRequest (int nodeID);
 
-void sendRequests(ticket ticket, int nodeID, int totalNodes);
+void sendRequests(ticket ticket, int totalNodes);
 
-void receiveReply(int nodeID, int i);
+int receiveReply(int nodeID, int i);
 
-void sendReply (ticket ticket);
+void sendReply (ticket ticket, int originID);
 
-void replyAllPending (sem_t *semPending, int *pendingRequestsCount, ticket * pendingRequestsArray, int nodeID);
+void replyAllPending (sharedMemory *sharedMemory, int nodeID);
 
 int getNodeReplyMsqid(int nodeID);
 
