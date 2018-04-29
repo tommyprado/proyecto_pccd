@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include "../headers/out.h"
 #include "../headers/coms.h"
+#include "../headers/tiempo.h"
+
 
 void sndMsgOut(int type, ticket ticket) {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    __suseconds_t t = tv.tv_usec;
+
+
+    long long int t = tiempoActual();
 
     printMessage message;
     message.mtype = type;
@@ -28,13 +30,13 @@ void writeOut() {
     msgrcv(msqid, &message, sizeof(ticket), 0, 0);
     if(message.mtype == TYPE_ENTRO){
         FILE * fileSC = fopen("pagos.dat", "w");
-        fprintf(fileSC, "%li 1\n", message.t);
+        fprintf(fileSC, "%lli 1\n", message.t);
         fclose(fileSC);
 
     }
     else if(message.mtype == TYPE_SALGO){
         FILE * fileSC = fopen("pagos.dat", "w");
-        fprintf(fileSC, "%li 0\n", message.t);
+        fprintf(fileSC, "%lli 0\n", message.t);
         fclose(fileSC);
     }
 }
