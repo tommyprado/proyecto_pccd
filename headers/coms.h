@@ -9,7 +9,7 @@
 typedef struct {
     long    mtype;
     ticket  ticket;
-    __suseconds_t t;
+    long long int t;
 } launcherMessage;
 
 typedef struct {
