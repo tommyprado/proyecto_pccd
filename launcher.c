@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <sys/msg.h>
 #include <zconf.h>
+#include <sys/time.h>
 #include "headers/ticketUtils.h"
 #include "headers/coms.h"
 #include "headers/out.h"
@@ -25,6 +26,9 @@ void execProcess(int node, int nodeCount);
 int nodeCount = 0;
 
 int main(int argc, char *argv[]) {
+
+    long long int tiempoInicio=iniciarReloj();
+
     initMessageQueue();
     FILE *fp = getFile(argc, argv);
     char nextLine[LINE_LIMIT];
@@ -110,4 +114,38 @@ void pintar(){
     FILE * ventanaGnuplot = popen ("gnuplot -persist", "w");
     fprintf(ventanaGnuplot, "%s \n", "load \"pintargraficas.plot\"");
     int fclose (FILE *ventanaGnuplot);
+}
+
+long long int iniciarReloj(){
+    struct timeval timer_usec;
+    long long int tiempoInicio;
+
+    if (!gettimeofday(&timer_usec, NULL)) {
+        tiempoInicio = ((long long int) timer_usec.tv_sec) * 1000000ll +
+                       (long long int) timer_usec.tv_usec;
+    }
+    else {
+        tiempoInicio = -1;
+    }
+    printf("%lld tiempo inicio ->\n", tiempoInicio);
+
+    return tiempoInicio;
+}
+
+
+long long int duracionEjecucion(long long int tiempoInicio){
+
+    long long int tiempoFin;
+    struct timeval timer_usec;
+
+    if (!gettimeofday(&timer_usec, NULL)) {
+        tiempoFin = ((long long int) timer_usec.tv_sec) * 1000000ll +
+                       (long long int) timer_usec.tv_usec;
+    }
+    else {
+        tiempoFin = -1;
+    }
+
+
+    return tiempoFin-tiempoInicio;
 }
