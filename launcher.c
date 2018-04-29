@@ -4,9 +4,11 @@
 #include <stdio.h>
 #include <sys/msg.h>
 #include <zconf.h>
+#include <sys/time.h>
 #include "headers/ticketUtils.h"
 #include "headers/coms.h"
 #include "headers/out.h"
+#include "headers/tiempo.h"
 
 #define LINE_LIMIT 200
 
@@ -25,6 +27,9 @@ void execProcess(int node, int nodeCount);
 int nodeCount = 0;
 
 int main(int argc, char *argv[]) {
+
+    long long int tiempoInicio=tiempoActual();
+
     initMessageQueue();
     FILE *fp = getFile(argc, argv);
     char nextLine[LINE_LIMIT];
@@ -111,3 +116,13 @@ void pintar(){
     fprintf(ventanaGnuplot, "%s \n", "load \"pintargraficas.plot\"");
     int fclose (FILE *ventanaGnuplot);
 }
+
+
+
+
+long long int duracionEjecucion(long long int tiempoInicio){
+
+    return tiempoActual()-tiempoInicio;
+}
+
+
