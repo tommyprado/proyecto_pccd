@@ -7,7 +7,7 @@
 #include <sys/shm.h>
 #include "../headers/coms.h"
 #include "../headers/inits.h"
-#include "../headers/out.h"
+#include "../headers/launcherUtils.h"
 #include "../headers/ticketUtils.h"
 
 #define SHM_KEY 20000

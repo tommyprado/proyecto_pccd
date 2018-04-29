@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "headers/coms.h"
 #include "headers/inits.h"
+#include "headers/launcherUtils.h"
+#include "headers/ticketUtils.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -24,7 +26,7 @@ int main(int argc, char *argv[]){
     while(1) {
         printf("%sEsperando a recibir mensaje\n", receptorTag);
         ticket originTicket = receiveRequest(nodeID);
-        printf("%sMensaje recibido\n", receptorTag);
+        printf("%sMensaje recibido de %d\n", receptorTag, originTicket.pid);
         updateMaxPetition(sharedMemoryPointer->maxPetition);
         sem_wait(&sharedMemoryPointer->semWantTo);
         sem_wait(&sharedMemoryPointer->semTicket);
@@ -32,7 +34,7 @@ int main(int argc, char *argv[]){
            (sharedMemoryPointer->wantTo && (compTickets(sharedMemoryPointer->myTicket, originTicket) == 1))) { // myTicket > originTicket?
             sem_post(&sharedMemoryPointer->semTicket);
             sem_post(&sharedMemoryPointer->semWantTo);
-            printf("%sEnviando reply\n", receptorTag);
+            printf("%sEnviando reply a %d\n", receptorTag, originTicket.pid);
             sendReply(originTicket);
         } else{
             sem_post(&sharedMemoryPointer->semTicket);
@@ -49,9 +51,10 @@ void initReceptor(int argc, char *argv[]) {
         exit(0);
     }
     nodeID = atoi(argv[1]);
-    sprintf(receptorTag, "RECEPTOR %d> ", nodeID);
+    sprintf(receptorTag, "R%d> ", nodeID);
     initMailBoxes(nodeID);
     sharedMemoryPointer = initSharedMemory(nodeID);
+    sendReceptorConfirmation();
 }
 
 void printWrongUsageError() {

@@ -7,7 +7,7 @@
 #include <sys/time.h>
 #include "headers/ticketUtils.h"
 #include "headers/coms.h"
-#include "headers/out.h"
+#include "headers/launcherUtils.h"
 #include "headers/tiempo.h"
 
 #define LINE_LIMIT 200
@@ -27,6 +27,7 @@ void execProcess(int node, int nodeCount);
 int nodeCount = 0;
 
 int main(int argc, char *argv[]) {
+    system("ipcrm --all && killall Process && killall Receptor");
 
     long long int tiempoInicio=tiempoActual();
 
@@ -35,7 +36,9 @@ int main(int argc, char *argv[]) {
     char nextLine[LINE_LIMIT];
     while (1) {
         if((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-            processLine(nextLine);
+            if (strcmp(nextLine, "\n") != 0) {
+                processLine(nextLine);
+            }
         } else {
             break;
         }
@@ -64,6 +67,9 @@ void processLine(char line[LINE_LIMIT]) {
             }
         }
         printf("%sLanzando %d receptores\n", LAUNCHER_TAG, nodeCount);
+        for (int j = 0; j < nodeCount; ++j) {
+            receiveReceptorConfirmation();
+        }
     } else if (strcmp(split[0], "+") == 0) {
         int node = atoi(split[1]);
 //        int type = convertType(split[2]);
@@ -117,11 +123,7 @@ void pintar(){
     int fclose (FILE *ventanaGnuplot);
 }
 
-
-
-
 long long int duracionEjecucion(long long int tiempoInicio){
-
     return tiempoActual()-tiempoInicio;
 }
 

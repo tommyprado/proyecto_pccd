@@ -1,16 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <semaphore.h>
-#include <fcntl.h>
 #include <zconf.h>
-#include <sys/msg.h>
-#include <sys/shm.h>
-#include <pthread.h>
-#include <sys/time.h>
 #include "headers/ticketUtils.h"
 #include "headers/inits.h"
 #include "headers/coms.h"
-#include "headers/out.h"
+#include "headers/launcherUtils.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -18,11 +14,11 @@
 #define PENDING_REQUESTS_LIMIT 1000000
 #define NODE_REQUEST_BASE 10000
 
-#define SC_WAIT 1000
+#define SC_WAIT 2
 
 void setWantTo (int value);
 
-void initNode(int argc, char *argv[]);
+void initNode(int argc, char *argv[], int pid);
 
 void printWrongUsageError();
 
@@ -36,28 +32,29 @@ sharedMemStruct *sharedMemoryPointer;
 
 int totalNodes, nodeID;
 
-char mainTag[100];
+char processTag[100];
 
 int main(int argc, char *argv[]){
     int pid = getpid();
-    initNode(argc, argv);
-    printf("%sIntentando acceder a la sección crítica...\n", mainTag);
+    initNode(argc, argv, pid);
+    printf("%sIntentando acceder a la sección crítica...\n", processTag);
     setWantTo(1);
     sem_wait(&sharedMemoryPointer->semTicket);
-    sharedMemoryPointer->myTicket = createTicket(nodeID, &sharedMemoryPointer->maxPetition, &sharedMemoryPointer->semMaxPetition);
+    sharedMemoryPointer->myTicket = createTicket(nodeID, pid, &sharedMemoryPointer->maxPetition,
+                                                 &sharedMemoryPointer->semMaxPetition);
     sendRequests(sharedMemoryPointer->myTicket, nodeID, totalNodes);
     sem_post(&sharedMemoryPointer->semTicket);
     int countReply = 1;
     while (countReply < totalNodes) {
         receiveReply(nodeID, pid);
-        printf("%sReply recibido\n", mainTag);
+        printf("%sReply recibido\n", processTag);
         countReply++;
     }
-    printf("%sAccediendo a la sección crítica...\n", mainTag);
+    printf("%sAccediendo a la sección crítica...\n", processTag);
     accessCS(sharedMemoryPointer->myTicket);
-    printf("%sFuera de la sección crítica\n", mainTag);
+    printf("%sFuera de la sección crítica\n", processTag);
     setWantTo(0);
-    printf("%sRespondiendo a Requests pendientes...\n", mainTag);
+    printf("%sRespondiendo a Requests pendientes...\n", processTag);
     replyAllPending(&sharedMemoryPointer->semPending, &sharedMemoryPointer->pendingRequestsCount, sharedMemoryPointer->pendingRequestsArray, nodeID);
 }
 
@@ -68,12 +65,14 @@ void setWantTo (int value){
 }
 
 void accessCS (ticket ticket){
-    sndMsgOut(TYPE_ENTRO, ticket);
-    usleep(SC_WAIT * 1000);
-    sndMsgOut(TYPE_SALGO, ticket);
+    sndMsgOut(TYPE_ACCESS_CS, ticket);
+    printf("%sEn sección crítica\n", processTag);
+    sleep(SC_WAIT);
+    printf("%sSaliendo de sección crítica\n", processTag);
+    sndMsgOut(TYPE_EXIT_CS, ticket);
 }
 
-void initNode(int argc, char *argv[]) {
+void initNode(int argc, char *argv[], int pid) {
     if (argc != 3) {
         printWrongUsageError();
         exit(0);
@@ -83,7 +82,7 @@ void initNode(int argc, char *argv[]) {
     if (nodeID > totalNodes) {
         printWrongUsageError();
     }
-    sprintf(mainTag, "PROCESS %d> ", nodeID);
+    sprintf(processTag, "N%d %d> ", nodeID, pid);
 
     sharedMemoryPointer = getSharedMemory(nodeID);
 }
