@@ -147,8 +147,3 @@ void pintar(){
     int fclose (FILE *ventanaGnuplot);
 }
 
-long long int duracionEjecucion(long long int tiempoInicio){
-    return getTimestamp()-tiempoInicio;
-}
-
-
