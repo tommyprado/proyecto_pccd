@@ -35,13 +35,15 @@ int totalNodes, nodeID, pid;
 
 char processTag[100];
 
+char stringTicket[10];
+
 int main(int argc, char *argv[]){
     initNode(argc, argv);
     sem_wait(&sharedMemoryPointer->nodeStatusSem);
     if (!sharedMemoryPointer->hasProcesses) {
-        printf("%sPrimer proceso\n", processTag);
         sharedMemoryPointer->hasProcesses = true;
         createCompetitorTicket();
+        printf("%sPrimer proceso.\n", processTag);
         sendRequests(sharedMemoryPointer->competitorTicket, totalNodes);
         sem_post(&sharedMemoryPointer->nodeStatusSem);
         int countReply = 0;
@@ -86,9 +88,10 @@ void waitForCSAccess() {
 
 void accessCS (ticket ticket){
     sndTicketToLauncher(TYPE_ACCESS_CS, ticket);
-    printf("%sEn sección crítica\n", processTag);
+    ticketToString(stringTicket, sharedMemoryPointer->competitorTicket);
+    printf("%sEn sección crítica con ticket %s\n", processTag, stringTicket);
     usleep(SC_WAIT * 1000);
-    printf("%sSaliendo de sección crítica\n", processTag);
+    printf("%sSaliendo de sección crítica con ticket %s\n", processTag, stringTicket);
     sndTicketToLauncher(TYPE_EXIT_CS, ticket);
 }
 
