@@ -13,7 +13,7 @@
 
 #define PENDING_REQUESTS_LIMIT 1000000
 
-#define SC_WAIT 3
+#define SC_WAIT 500
 
 void initNode(int argc, char *argv[]);
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]){
         while (countReply < totalNodes - 1) {
             countReply++;
             long node = receiveReply(nodeID, pid);
-            printf("%sRecibido reply from %ld\n", processTag, node);
+            //printf("%sRecibido reply from %ld\n", processTag, node);
         }
     } else {
         sem_post(&sharedMemoryPointer->nodeStatusSem);
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]){
 
     sem_wait(&sharedMemoryPointer->nodeStatusSem);
     if (sharedMemoryPointer->pendingProcessesCount != 0) {
-        printf("%sWaking up other\n", processTag);
+        //printf("%sWaking up other\n", processTag);
         sharedMemoryPointer->pendingProcessesCount = sharedMemoryPointer->pendingProcessesCount - 1;
         sem_post(&sharedMemoryPointer->allowNextCSPassSem);
     } else {
@@ -87,7 +87,7 @@ void waitForCSAccess() {
 void accessCS (ticket ticket){
     sndTicketToLauncher(TYPE_ACCESS_CS, ticket);
     printf("%sEn sección crítica\n", processTag);
-    sleep(SC_WAIT);
+    usleep(SC_WAIT*1000);
     printf("%sSaliendo de sección crítica\n", processTag);
     sndTicketToLauncher(TYPE_EXIT_CS, ticket);
 }
@@ -103,7 +103,7 @@ void initNode(int argc, char *argv[]) {
         printWrongUsageError();
     }
     pid = getpid();
-    sprintf(processTag, "N%d %d> ", nodeID, pid);
+    sprintf(processTag, "N%d -> ", nodeID);
 
     sharedMemoryPointer = getSharedMemory(nodeID);
 }

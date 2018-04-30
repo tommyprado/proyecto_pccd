@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/msg.h>
 #include <unistd.h>
-#include <sys/time.h>
+#include <time.h>
 #include "headers/ticketUtils.h"
 #include "headers/coms.h"
 #include "headers/launcherUtils.h"
@@ -29,10 +29,16 @@ int nodeCount = 0;
 
 int processCount = 0;
 
+
 int main(int argc, char *argv[]) {
     system("ipcrm --all && killall Process && killall Receptor");
 
-    long long int tiempoInicio = getTimestamp();
+
+    time_t actualTime = time(0);
+    struct tm *tlocal1 = localtime(&actualTime);
+    char initTime[128];
+    strftime(initTime,128,"%d/%m/%y %H:%M:%S",tlocal1);
+    long long int initTimeInSec = getTimestamp();
 
     initMessageQueue();
     FILE *fp = getFile(argc, argv);
@@ -49,6 +55,15 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < processCount; ++i) {
         getMsgOut(TYPE_PROCESS_FINISHED);
     }
+
+    actualTime = time(0);
+    struct tm *tlocal2 = localtime(&actualTime);
+    char endTime[128];
+    strftime(endTime,128,"%d/%m/%y %H:%M:%S",tlocal2);
+    long long int endTimeInSec = getTimestamp();
+
+    printf("Tiempo de inicio: %s. Tiempo de finalización: %s. Han transcurrido %lli microsegundos.\n",initTime, endTime, endTimeInSec-initTimeInSec);
+    printf("Se han ejecutado %i procesos en total\n", processCount);
     printf("Todos los procesos pasaron por sección crítica\n");
     fclose(fp);
     writeOut();

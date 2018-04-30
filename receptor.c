@@ -30,11 +30,11 @@ int main(int argc, char *argv[]){
         if(!sharedMemoryPointer->hasProcesses ||
            (sharedMemoryPointer->hasProcesses && (compTickets(sharedMemoryPointer->competitorTicket, originTicket) == 1))) { // competitorTicket > originTicket?
             sem_post(&sharedMemoryPointer->nodeStatusSem);
-            printf("%sEnviando reply a %d - %d\n", receptorTag, originTicket.nodeID, originTicket.pid);
+            //printf("%sEnviando reply a %d - %d\n", receptorTag, originTicket.nodeID, originTicket.pid);
             sendReply(originTicket, nodeID);
         } else{
             sem_post(&sharedMemoryPointer->nodeStatusSem);
-            printf("%sGuardando request de %d\n", receptorTag, originTicket.pid);
+            //printf("%sGuardando request de %d\n", receptorTag, originTicket.pid);
             saveRequest(originTicket);
         }
     }
