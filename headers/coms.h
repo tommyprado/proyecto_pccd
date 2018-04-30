@@ -27,8 +27,6 @@ int receiveReply(int nodeID, int i);
 
 void sendReply (ticket ticket, int originID);
 
-void replyAllPending (sharedMemory *sharedMemory, int nodeID);
-
 int getNodeReplyMsqid(int nodeID);
 
 int getNodeRequestMsqid(int nodeID);

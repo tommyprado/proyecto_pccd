@@ -40,13 +40,6 @@ void sendReply (ticket ticket, int originID){
     }
 }
 
-void replyAllPending (sharedMemory *sharedMemory, int nodeID){
-    for(int i=0; i < sharedMemory->pendingRequestsCount; i++){
-        sendReply(sharedMemory->pendingRequestsArray[i], nodeID);
-    }
-    sharedMemory->pendingRequestsCount = 0;
-}
-
 int receiveReply(int nodeID, int pid) {
     int msqid = getNodeReplyMsqid(nodeID);
     ticketMessage message;

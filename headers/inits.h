@@ -7,11 +7,18 @@
 #define SHM_KEY 20000
 
 typedef struct {
-    int maxRequestID, pendingRequestsCount, pendingProcessesCount;
-    sem_t competitorTicketSem, nodeStatusSem, allowNextCSPassSem;
+    int maxRequestID, pendingRequestsMaxPriority;
+    sem_t competitorTicketSem, nodeStatusSem;
     ticket competitorTicket;
-    ticket pendingRequestsArray[PENDING_REQUESTS_LIMIT];
-    bool hasProcesses;
+
+    int nextPagosCount, nextAnulacionesCount, nextReservasCount, nextConsultoresCount;
+    sem_t nextPagosSem, nextAnulacionesSem, nextReservasSem, nextConsultoresSem;
+
+    int pendingPagosCount, pendingAnulacionesCount, pendingReservasCount, pendingConsultoresCount;
+    ticket pendingPagosArray[PENDING_REQUESTS_LIMIT];
+    ticket pendingAnulacionesArray[PENDING_REQUESTS_LIMIT];
+    ticket pendingReservasArray[PENDING_REQUESTS_LIMIT];
+    ticket pendingConsultoresArray[PENDING_REQUESTS_LIMIT];
 } sharedMemory;
 
 void initMailBoxes(int nodeID);

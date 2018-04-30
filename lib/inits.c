@@ -36,7 +36,7 @@ sharedMemory * initSharedMemory(int nodeID) {
 
     initSemaphore(&sharedMemoryPointer->nodeStatusSem, 1);
     initSemaphore(&sharedMemoryPointer->competitorTicketSem, 1);
-    initSemaphore(&sharedMemoryPointer->allowNextCSPassSem, 0);
+    initSemaphore(&sharedMemoryPointer->nextPagosSem, 0);
 
     ticket ticket;
     ticket.nodeID = nodeID;
@@ -44,8 +44,8 @@ sharedMemory * initSharedMemory(int nodeID) {
     sharedMemoryPointer->competitorTicket = ticket;
 
     sharedMemoryPointer->maxRequestID = 0;
-    sharedMemoryPointer->pendingRequestsCount = 0;
-    sharedMemoryPointer->pendingProcessesCount = 0;
+    sharedMemoryPointer->pendingPagosCount = 0;
+    sharedMemoryPointer->nextPagosCount = 0;
 
     sharedMemoryPointer->hasProcesses = false;
 
