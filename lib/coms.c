@@ -27,11 +27,12 @@ void sendRequests(ticket ticket, int totalNodes){
     }
 }
 
-void sendReply (ticket ticket){
+void sendReply (ticket ticket, int originID){
     int msqid = getNodeReplyMsqid(ticket.nodeID);
     ticketMessage message;
     message.mtype = ticket.pid;
     message.ticket = ticket;
+    message.origin = originID;
     int msg = msgsnd(msqid, &message, sizeof(ticketMessage) - sizeof(long), 0);
     if(msg == -1) {
         printf("Error al enviar el ticket\n");
@@ -39,18 +40,18 @@ void sendReply (ticket ticket){
     }
 }
 
-void replyAllPending (sharedMemory *sharedMemory){
+void replyAllPending (sharedMemory *sharedMemory, int nodeID){
     for(int i=0; i < sharedMemory->pendingRequestsCount; i++){
-        sendReply(sharedMemory->pendingRequestsArray[i]);
+        sendReply(sharedMemory->pendingRequestsArray[i], nodeID);
     }
     sharedMemory->pendingRequestsCount = 0;
 }
 
-void receiveReply(int nodeID, int pid) {
+int receiveReply(int nodeID, int pid) {
     int msqid = getNodeReplyMsqid(nodeID);
     ticketMessage message;
-    printf("Receiving reply for %d\n", pid);
-    msgrcv(msqid, &message, sizeof(ticket), pid, 0);
+    msgrcv(msqid, &message, sizeof(message) - sizeof(long), pid, 0);
+    return message.origin;
 }
 
 int getNodeReplyMsqid(int nodeID) {

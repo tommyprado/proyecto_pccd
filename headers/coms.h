@@ -16,17 +16,18 @@ typedef struct {
 typedef struct {
     long    mtype;
     ticket  ticket;
+    int origin;
 } ticketMessage;
 
 ticket receiveRequest (int nodeID);
 
 void sendRequests(ticket ticket, int totalNodes);
 
-void receiveReply(int nodeID, int i);
+int receiveReply(int nodeID, int i);
 
-void sendReply (ticket ticket);
+void sendReply (ticket ticket, int originID);
 
-void replyAllPending (sharedMemory *sharedMemory);
+void replyAllPending (sharedMemory *sharedMemory, int nodeID);
 
 int getNodeReplyMsqid(int nodeID);
 

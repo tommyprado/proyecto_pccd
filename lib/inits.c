@@ -57,7 +57,7 @@ sharedMemory * initSharedMemory(int nodeID) {
 
 sharedMemory *getSharedMemory(int nodeID) {
     int key = SHM_KEY + nodeID;
-    int id = shmget(key, sizeof(sharedMemory), IPC_CREAT | 0666);
+    int id = shmget(key, sizeof(sharedMemory), 0666);
     if (id < 0) {
         printf("shmget error\n");
         exit(1);

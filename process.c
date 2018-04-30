@@ -48,8 +48,8 @@ int main(int argc, char *argv[]){
         int countReply = 0;
         while (countReply < totalNodes - 1) {
             countReply++;
-            receiveReply(nodeID, pid);
-            printf("%sRecibido reply %d\n", processTag, countReply);
+            long node = receiveReply(nodeID, pid);
+            printf("%sRecibido reply from %ld\n", processTag, node);
         }
     } else {
         sem_post(&sharedMemoryPointer->nodeStatusSem);
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]){
     } else {
         sharedMemoryPointer->competitorTicket.requestID = -1;
         sharedMemoryPointer->hasProcesses = false;
-        replyAllPending(sharedMemoryPointer);
+        replyAllPending(sharedMemoryPointer, nodeID);
     }
     sem_post(&sharedMemoryPointer->nodeStatusSem);
 }

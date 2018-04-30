@@ -25,16 +25,13 @@ int main(int argc, char *argv[]){
     initReceptor(argc, argv);
     while(1) {
         ticket originTicket = receiveRequest(nodeID);
-        char ticketString[100];
-        ticketToString(ticketString, originTicket);
-        printf("%s\n", ticketString);
         updateRequestID(originTicket.requestID);
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
         if(!sharedMemoryPointer->hasProcesses ||
            (sharedMemoryPointer->hasProcesses && (compTickets(sharedMemoryPointer->competitorTicket, originTicket) == 1))) { // competitorTicket > originTicket?
             sem_post(&sharedMemoryPointer->nodeStatusSem);
-            printf("%sEnviando reply a %d\n", receptorTag, originTicket.pid);
-            sendReply(originTicket);
+            printf("%sEnviando reply a %d - %d\n", receptorTag, originTicket.nodeID, originTicket.pid);
+            sendReply(originTicket, nodeID);
         } else{
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             printf("%sGuardando request de %d\n", receptorTag, originTicket.pid);
