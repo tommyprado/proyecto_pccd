@@ -1,9 +1,9 @@
-#include <sys/msg.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "../headers/coms.h"
 #include "../headers/ticketUtils.h"
 #include "../headers/inits.h"
+#include <sys/msg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 ticket receiveRequest (int nodeID) {
     ticketMessage message;

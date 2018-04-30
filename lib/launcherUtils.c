@@ -1,13 +1,16 @@
-#include <sys/msg.h>
-#include <sys/time.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "../headers/launcherUtils.h"
 #include "../headers/coms.h"
 #include "../headers/tiempo.h"
+#include <sys/msg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
+void sndMsgToLauncher(int type) {
+    ticket ticket;
+    sndTicketToLauncher(type, ticket);
+}
 
-void sndMsgOut(int type, ticket ticket) {
+void sndTicketToLauncher(int type, ticket ticket) {
     long long int t = getTimestamp();
 
     launcherMessage message;

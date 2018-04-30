@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
         }
     }
     for (int i = 0; i < processCount; ++i) {
-        getMsgOut(TYPE_EXIT_CS);
+        getMsgOut(TYPE_PROCESS_FINISHED);
     }
     printf("Todos los procesos pasaron por sección crítica\n");
     fclose(fp);

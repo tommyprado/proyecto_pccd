@@ -69,6 +69,7 @@ int main(int argc, char *argv[]){
         replyAllPending(sharedMemoryPointer, nodeID);
     }
     sem_post(&sharedMemoryPointer->nodeStatusSem);
+    sndMsgToLauncher(TYPE_PROCESS_FINISHED);
 }
 
 void createCompetitorTicket() {
@@ -85,11 +86,11 @@ void waitForCSAccess() {
 }
 
 void accessCS (ticket ticket){
-    sndMsgOut(TYPE_ACCESS_CS, ticket);
+    sndTicketToLauncher(TYPE_ACCESS_CS, ticket);
     printf("%sEn sección crítica\n", processTag);
     sleep(SC_WAIT);
     printf("%sSaliendo de sección crítica\n", processTag);
-    sndMsgOut(TYPE_EXIT_CS, ticket);
+    sndTicketToLauncher(TYPE_EXIT_CS, ticket);
 }
 
 void initNode(int argc, char *argv[]) {

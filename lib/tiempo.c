@@ -1,7 +1,6 @@
 #include "../headers/tiempo.h"
 #include <sys/time.h>
-#include <wchar.h>
-#include <stdio.h>
+#include <stdlib.h>
 
 long long int getTimestamp(){
     struct timeval timer_usec;

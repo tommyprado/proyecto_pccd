@@ -1,14 +1,11 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <semaphore.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
-#include <pthread.h>
-#include <sys/shm.h>
 #include "../headers/coms.h"
 #include "../headers/inits.h"
 #include "../headers/launcherUtils.h"
 #include "../headers/ticketUtils.h"
+#include <sys/msg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/shm.h>
 
 void initMailBoxes(int nodeID) {
     if (msgget(nodeID + NODE_REQUEST_BASE, 0666 | IPC_CREAT) == -1 || msgget(nodeID + NODE_REPLY_BASE, 0666 | IPC_CREAT) == -1)
