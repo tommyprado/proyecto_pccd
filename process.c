@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <semaphore.h>
-#include <zconf.h>
 #include <stdbool.h>
 #include "headers/ticketUtils.h"
 #include "headers/inits.h"
