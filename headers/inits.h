@@ -15,11 +15,9 @@ typedef struct {
     int nextPagosCount, nextAnulacionesCount, nextReservasCount, nextConsultoresCount;
     sem_t nextPagosSem, nextAnulacionesSem, nextReservasSem, nextConsultoresSem;
 
-    int pendingPagosCount, pendingAnulacionesCount, pendingReservasCount, pendingConsultoresCount;
-    ticket pendingPagosArray[PENDING_REQUESTS_LIMIT];
-    ticket pendingAnulacionesArray[PENDING_REQUESTS_LIMIT];
-    ticket pendingReservasArray[PENDING_REQUESTS_LIMIT];
-    ticket pendingConsultoresArray[PENDING_REQUESTS_LIMIT];
+    int pendingRequestsCount;
+    ticket pendingRequests[PENDING_REQUESTS_LIMIT];
+    bool reset;
 } sharedMemory;
 
 void initMailBoxes(int nodeID);

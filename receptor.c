@@ -65,8 +65,8 @@ void updateRequestID(int originRequestID){
 }
 
 void saveRequest (ticket ticket){
-    sharedMemoryPointer->pendingPagosArray[sharedMemoryPointer->pendingPagosCount] = ticket;
-    sharedMemoryPointer->pendingPagosCount++;
+    sharedMemoryPointer->pendingRequests[sharedMemoryPointer->pendingRequestsCount] = ticket;
+    sharedMemoryPointer->pendingRequestsCount++;
 }
 
 #pragma clang diagnostic pop

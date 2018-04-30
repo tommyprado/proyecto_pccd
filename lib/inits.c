@@ -44,7 +44,7 @@ sharedMemory * initSharedMemory(int nodeID) {
     sharedMemoryPointer->competitorTicket = ticket;
 
     sharedMemoryPointer->maxRequestID = 0;
-    sharedMemoryPointer->pendingPagosCount = 0;
+    sharedMemoryPointer->pendingRequestsCount = 0;
     sharedMemoryPointer->nextPagosCount = 0;
 
     sharedMemoryPointer->hasProcesses = false;
