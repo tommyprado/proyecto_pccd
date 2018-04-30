@@ -5,6 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define REQUEST_ID_MULTIPLIER 1000000
+
+#define NODE_ID_MULTIPLIER 10
+
+long getMsgType(ticket ticket) ;
+
 ticket receiveRequest (int nodeID) {
     ticketMessage message;
     int msqid = getNodeRequestMsqid(nodeID);
@@ -15,22 +21,26 @@ ticket receiveRequest (int nodeID) {
 void sendRequests(ticket ticket, int totalNodes){
     for(int node = 1; node < totalNodes + 1; node++){
         if(node != ticket.nodeID){
-            int msqid = getNodeRequestMsqid(node);
-            ticketMessage message;
-            message.ticket = ticket;
-            int msg = msgsnd(msqid, &message, sizeof(ticketMessage) - sizeof(long), 0);
-            if(msg == -1) {
-                printf("Error al enviar el ticket\n");
-                exit(1);
-            }
+            sendRequest(ticket, node);
         }
+    }
+}
+
+void sendRequest (ticket ticket, int node) {
+    int msqid = getNodeRequestMsqid(node);
+    ticketMessage message;
+    message.ticket = ticket;
+    int msg = msgsnd(msqid, &message, sizeof(ticketMessage) - sizeof(long), 0);
+    if(msg == -1) {
+        printf("Error al enviar el ticket\n");
+        exit(1);
     }
 }
 
 void sendReply (ticket ticket, int originID){
     int msqid = getNodeReplyMsqid(ticket.nodeID);
     ticketMessage message;
-    message.mtype = ticket.pid;
+    message.mtype = getMsgType(ticket);
     message.ticket = ticket;
     message.origin = originID;
     int msg = msgsnd(msqid, &message, sizeof(ticketMessage) - sizeof(long), 0);
@@ -40,11 +50,15 @@ void sendReply (ticket ticket, int originID){
     }
 }
 
-int receiveReply(int nodeID, int pid) {
-    int msqid = getNodeReplyMsqid(nodeID);
+void receiveReply(ticket ticket) {
+    int msqid = getNodeReplyMsqid(ticket.nodeID);
+    long type = getMsgType(ticket);
     ticketMessage message;
-    msgrcv(msqid, &message, sizeof(message) - sizeof(long), pid, 0);
-    return message.origin;
+    msgrcv(msqid, &message, sizeof(message) - sizeof(long), type, 0);
+}
+
+long getMsgType(ticket ticket) {
+    return ticket.requestID * REQUEST_ID_MULTIPLIER + ticket.nodeID * NODE_ID_MULTIPLIER + ticket.priority;
 }
 
 int getNodeReplyMsqid(int nodeID) {

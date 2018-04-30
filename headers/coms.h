@@ -23,7 +23,7 @@ ticket receiveRequest (int nodeID);
 
 void sendRequests(ticket ticket, int totalNodes);
 
-int receiveReply(int nodeID, int i);
+void receiveReply(ticket ticket);
 
 void sendReply (ticket ticket, int originID);
 

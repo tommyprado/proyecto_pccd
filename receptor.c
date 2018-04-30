@@ -4,6 +4,7 @@
 #include "headers/inits.h"
 #include "headers/launcherUtils.h"
 #include "headers/ticketUtils.h"
+#include "headers/priorityUtils.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -27,12 +28,13 @@ int main(int argc, char *argv[]){
         ticket originTicket = receiveRequest(nodeID);
         updateRequestID(originTicket.requestID);
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
-        if(!sharedMemoryPointer->hasProcesses ||
-           (sharedMemoryPointer->hasProcesses && (compTickets(sharedMemoryPointer->competitorTicket, originTicket) == 1))) { // competitorTicket > originTicket?
+        if(!nodeHasProcesses(sharedMemoryPointer) ||
+           (nodeHasProcesses(sharedMemoryPointer) && (compTickets(sharedMemoryPointer->competitorTicket, originTicket) == 1))) { // competitorTicket > originTicket?
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             printf("%sEnviando reply a %d - %d\n", receptorTag, originTicket.nodeID, originTicket.pid);
             sendReply(originTicket, nodeID);
         } else{
+            // TODO: reset
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             printf("%sGuardando request de %d\n", receptorTag, originTicket.pid);
             saveRequest(originTicket);
