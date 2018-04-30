@@ -14,7 +14,7 @@
 
 #define PENDING_REQUESTS_LIMIT 1000000
 
-#define SC_WAIT 3
+#define SC_WAIT 500
 
 void initNode(int argc, char *argv[]);
 
@@ -88,7 +88,7 @@ void waitForCSAccess() {
 void accessCS (ticket ticket){
     sndTicketToLauncher(TYPE_ACCESS_CS, ticket);
     printf("%sEn sección crítica\n", processTag);
-    sleep(SC_WAIT);
+    usleep(SC_WAIT * 1000);
     printf("%sSaliendo de sección crítica\n", processTag);
     sndTicketToLauncher(TYPE_EXIT_CS, ticket);
 }

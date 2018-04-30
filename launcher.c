@@ -86,6 +86,9 @@ void processLine(char line[LINE_LIMIT]) {
                 execProcess(node, nodeCount);
             }
         }
+    } else if (strcmp(split[0], "-") == 0) {
+        int delay = atoi(split[1]);
+        usleep((unsigned int) delay * 1000);
     }
 }
 
