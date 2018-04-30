@@ -87,7 +87,7 @@ void waitForCSAccess() {
 void accessCS (ticket ticket){
     sndTicketToLauncher(TYPE_ACCESS_CS, ticket);
     printf("%sEn sección crítica\n", processTag);
-    usleep(SC_WAIT*1000);
+    usleep(SC_WAIT * 1000);
     printf("%sSaliendo de sección crítica\n", processTag);
     sndTicketToLauncher(TYPE_EXIT_CS, ticket);
 }
