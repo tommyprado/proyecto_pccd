@@ -10,6 +10,7 @@ typedef struct {
     int maxRequestID, pendingRequestsMaxPriority;
     sem_t competitorTicketSem, nodeStatusSem;
     ticket competitorTicket;
+    ticket pagosTicket, anulacionesTicket, reservasTicket, consultoresTicket;
 
     int nextPagosCount, nextAnulacionesCount, nextReservasCount, nextConsultoresCount;
     sem_t nextPagosSem, nextAnulacionesSem, nextReservasSem, nextConsultoresSem;

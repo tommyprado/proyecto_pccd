@@ -29,9 +29,7 @@ void accessCS (ticket ticket);
 
 void waitForCSAccess();
 
-void createCompetitorTicket();
-
-int startCompetition();
+ticket createTicket();
 
 void wakeUpNextProcess(int priority);
 
@@ -42,6 +40,12 @@ void addProcessToCount(int priority);
 void removeProcessFromCount(int priority);
 
 void replyPending(int priority, int nodeID);
+
+bool priorityHasProcesses(int priority);
+
+void addPriorityTicket(ticket ticket);
+
+int startCompetition(bool hasToSend) ;
 
 sharedMemory *sharedMemoryPointer;
 
@@ -56,11 +60,16 @@ int main(int argc, char *argv[]){
     if (nodeHasProcesses()) {
         printf("%sPrimer proceso\n", processTag);
         addProcessToCount(priority);
-        competitionStatus = startCompetition();
+        competitionStatus = startCompetition(true);
+
     } else if (priority < sharedMemoryPointer->competitorTicket.priority) {
         printf("Proceso más prioritario que el anterior\n");
         addProcessToCount(priority);
-        competitionStatus = startCompetition();
+        competitionStatus = startCompetition(false);
+    } else if (!priorityHasProcesses(priority)){
+        printf("Primer proceso (no prioritario)\n");
+        ticket ticket = createTicket();
+        addPriorityTicket(ticket);
     } else {
         addProcessToCount(priority);
         sem_post(&sharedMemoryPointer->nodeStatusSem);
@@ -83,6 +92,21 @@ int main(int argc, char *argv[]){
     sem_post(&sharedMemoryPointer->nodeStatusSem);
 
     sndMsgToLauncher(TYPE_PROCESS_FINISHED);
+}
+
+bool priorityHasProcesses(int priority) {
+    switch (priority) {
+        case PAGOS:
+            return sharedMemoryPointer->nextPagosCount == 0;
+        case ANULACIONES:
+            return sharedMemoryPointer->nextAnulacionesCount == 0;
+        case RESERVAS:
+            return sharedMemoryPointer->nextReservasCount == 0;
+        case CONSULTORES:
+            return sharedMemoryPointer->nextConsultoresCount == 0;
+        default:
+            printf("Error en las prioridades\n");
+    }
 }
 
 void replyPending(int priority, int nodeID){
@@ -173,9 +197,13 @@ void wakeUpNextProcess(int priority) {
     }
 }
 
-int startCompetition() {
-    createCompetitorTicket();
-    sendRequests(sharedMemoryPointer->competitorTicket, totalNodes);
+int startCompetition(bool hasToSend) {
+    ticket ticket = createTicket();
+    addPriorityTicket(ticket);
+    if (hasToSend) {
+        sharedMemoryPointer->competitorTicket = ticket;
+        sendRequests(sharedMemoryPointer->competitorTicket, totalNodes);
+    }
     sem_post(&sharedMemoryPointer->nodeStatusSem);
     int countReply = 0;
     int status = 0;
@@ -195,12 +223,32 @@ int startCompetition() {
     return status;
 }
 
-void createCompetitorTicket() {
+void addPriorityTicket(ticket ticket) {
+    switch (priority) {
+        case PAGOS:
+            sharedMemoryPointer->pagosTicket = ticket;
+            break;
+        case ANULACIONES:
+            sharedMemoryPointer->anulacionesTicket = ticket;
+            break;
+        case RESERVAS:
+            sharedMemoryPointer->reservasTicket = ticket;
+            break;
+        case CONSULTORES:
+            sharedMemoryPointer->consultoresTicket = ticket;
+            break;
+        default:
+            printf("Prioridad incorrecta\n");
+            exit(1);
+    }
+}
+
+ticket createTicket() {
     sem_wait(&sharedMemoryPointer->competitorTicketSem);
     sharedMemoryPointer->maxRequestID = sharedMemoryPointer->maxRequestID + 1;
     ticket ticket = {.nodeID = nodeID, .requestID = sharedMemoryPointer->maxRequestID, .pid=pid, .priority = priority};
-    sharedMemoryPointer->competitorTicket = ticket;
     sem_post(&sharedMemoryPointer->competitorTicketSem);
+    return ticket;
 }
 
 void waitForCSAccess() {
