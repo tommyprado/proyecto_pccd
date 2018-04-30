@@ -31,21 +31,24 @@ void getMsgOut(int type) {
     msgrcv(msqid, &message, sizeof(message) - sizeof(long), type, 0);
 }
 
-void writeOut() {
+launcherMessage recepcionCualquierMensaje() {
     launcherMessage message;
     int msqid = getMsqid(LAUNCHER_QUEUE);
     msgrcv(msqid, &message, sizeof(message) - sizeof(long), 0, 0);
-    if(message.mtype == TYPE_ACCESS_CS){
-        FILE * fileSC = fopen("pagos.dat", "w");
-        fprintf(fileSC, "%lli 1\n", message.t);
-        fclose(fileSC);
 
-    }
-    else if(message.mtype == TYPE_EXIT_CS){
-        FILE * fileSC = fopen("pagos.dat", "w");
-        fprintf(fileSC, "%lli 0\n", message.t);
-        fclose(fileSC);
-    }
+    return message;
+}
+
+void tipoAcceso(char *nombreFichero, launcherMessage message){
+    FILE * fileSC = fopen(nombreFichero, "a");
+    fprintf(fileSC, "%lli 1\n", message.t);
+    fclose(fileSC);
+}
+
+void tipoSalida(char *nombreFichero, launcherMessage message){
+    FILE * fileSC = fopen(nombreFichero, "a");
+    fprintf(fileSC, "%lli 0\n", message.t);
+    fclose(fileSC);
 }
 
 void sendReceptorConfirmation () {
