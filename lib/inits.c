@@ -10,8 +10,6 @@
 #include "../headers/launcherUtils.h"
 #include "../headers/ticketUtils.h"
 
-#define SHM_KEY 20000
-
 void initMailBoxes(int nodeID) {
     if (msgget(nodeID + NODE_REQUEST_BASE, 0666 | IPC_CREAT) == -1 || msgget(nodeID + NODE_REPLY_BASE, 0666 | IPC_CREAT) == -1)
     {
@@ -20,15 +18,15 @@ void initMailBoxes(int nodeID) {
     }
 }
 
-void initSemaphore(sem_t *semaphore, int limit) {
-    int err = sem_init(semaphore, 0, limit);
+void initSemaphore(sem_t *semaphore, unsigned int limit) {
+    int err = sem_init(semaphore, 1, limit);
     if (err) {
         printf("Error inicializando semáforos\n");
         exit(1);
     }
 }
 
-sharedMemory *initSharedMemory(int nodeID) {
+sharedMemory * initSharedMemory(int nodeID) {
     int key = SHM_KEY + nodeID;
     int id = shmget(key, sizeof(sharedMemory), IPC_CREAT | 0666);
     if (id < 0) {

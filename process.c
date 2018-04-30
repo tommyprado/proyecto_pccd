@@ -13,7 +13,6 @@
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
 #define PENDING_REQUESTS_LIMIT 1000000
-#define NODE_REQUEST_BASE 10000
 
 #define SC_WAIT 3
 
@@ -28,8 +27,6 @@ void saveRequest (ticket ticket);
 void accessCS (ticket ticket);
 
 void waitForCSAccess();
-
-void competeForCSAccess() ;
 
 void createCompetitorTicket();
 
@@ -46,8 +43,14 @@ int main(int argc, char *argv[]){
         printf("%sPrimer proceso\n", processTag);
         sharedMemoryPointer->hasProcesses = true;
         createCompetitorTicket();
+        sendRequests(sharedMemoryPointer->competitorTicket, totalNodes);
         sem_post(&sharedMemoryPointer->nodeStatusSem);
-        competeForCSAccess();
+        int countReply = 0;
+        while (countReply < totalNodes - 1) {
+            countReply++;
+            receiveReply(nodeID, pid);
+            printf("%sRecibido reply %d\n", processTag, countReply);
+        }
     } else {
         sem_post(&sharedMemoryPointer->nodeStatusSem);
         waitForCSAccess();
@@ -57,10 +60,10 @@ int main(int argc, char *argv[]){
 
     sem_wait(&sharedMemoryPointer->nodeStatusSem);
     if (sharedMemoryPointer->pendingProcessesCount != 0) {
+        printf("%sWaking up other\n", processTag);
         sharedMemoryPointer->pendingProcessesCount = sharedMemoryPointer->pendingProcessesCount - 1;
         sem_post(&sharedMemoryPointer->allowNextCSPassSem);
     } else {
-        printf("%sRespondiendo a Requests pendientes...\n", processTag);
         sharedMemoryPointer->competitorTicket.requestID = -1;
         sharedMemoryPointer->hasProcesses = false;
         replyAllPending(sharedMemoryPointer);
@@ -79,15 +82,6 @@ void createCompetitorTicket() {
 void waitForCSAccess() {
     sharedMemoryPointer->pendingProcessesCount = sharedMemoryPointer->pendingProcessesCount + 1;
     sem_wait(&sharedMemoryPointer->allowNextCSPassSem);
-}
-
-void competeForCSAccess() {
-    sendRequests(sharedMemoryPointer->competitorTicket, totalNodes);
-    int countReply = 1;
-    while (countReply < totalNodes) {
-        receiveReply(nodeID, pid);
-        countReply++;
-    }
 }
 
 void accessCS (ticket ticket){

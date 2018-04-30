@@ -4,8 +4,8 @@
 #ifndef PROYECTO_COMS_H
 #define PROYECTO_COMS_H
 
-#define NODE_REQUEST_BASE 10000
-#define NODE_REPLY_BASE 20000
+#define NODE_REQUEST_BASE 100000
+#define NODE_REPLY_BASE 200000
 
 typedef struct {
     long    mtype;

@@ -8,7 +8,7 @@
 
 
 void sndMsgOut(int type, ticket ticket) {
-    long long int t = tiempoActual();
+    long long int t = getTimestamp();
 
     launcherMessage message;
     message.mtype = type;

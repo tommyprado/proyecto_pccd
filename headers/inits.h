@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "ticketUtils.h"
 #define PENDING_REQUESTS_LIMIT 1000000
+#define SHM_KEY 20000
 
 typedef struct {
     int maxRequestID, pendingRequestsCount, pendingProcessesCount;
@@ -15,7 +16,7 @@ typedef struct {
 
 void initMailBoxes(int nodeID);
 
-void initSemaphore(sem_t *semaphore, int i);
+void initSemaphore(sem_t *semaphore, unsigned int i);
 
 sharedMemory *getSharedMemory(int nodeID);
 

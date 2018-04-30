@@ -3,7 +3,7 @@
 #include <wchar.h>
 #include <stdio.h>
 
-long long int tiempoActual(){
+long long int getTimestamp(){
     struct timeval timer_usec;
     long long int tiempo;
 

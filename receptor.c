@@ -25,7 +25,10 @@ int main(int argc, char *argv[]){
     initReceptor(argc, argv);
     while(1) {
         ticket originTicket = receiveRequest(nodeID);
-        updateRequestID(sharedMemoryPointer->maxRequestID);
+        char ticketString[100];
+        ticketToString(ticketString, originTicket);
+        printf("%s\n", ticketString);
+        updateRequestID(originTicket.requestID);
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
         if(!sharedMemoryPointer->hasProcesses ||
            (sharedMemoryPointer->hasProcesses && (compTickets(sharedMemoryPointer->competitorTicket, originTicket) == 1))) { // competitorTicket > originTicket?

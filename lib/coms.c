@@ -17,7 +17,6 @@ void sendRequests(ticket ticket, int totalNodes){
         if(node != ticket.nodeID){
             int msqid = getNodeRequestMsqid(node);
             ticketMessage message;
-            message.mtype = ticket.pid;
             message.ticket = ticket;
             int msg = msgsnd(msqid, &message, sizeof(ticketMessage) - sizeof(long), 0);
             if(msg == -1) {
@@ -50,6 +49,7 @@ void replyAllPending (sharedMemory *sharedMemory){
 void receiveReply(int nodeID, int pid) {
     int msqid = getNodeReplyMsqid(nodeID);
     ticketMessage message;
+    printf("Receiving reply for %d\n", pid);
     msgrcv(msqid, &message, sizeof(ticket), pid, 0);
 }
 

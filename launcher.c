@@ -12,7 +12,7 @@
 
 #define LINE_LIMIT 200
 
-#define LAUNCHER_TAG "LAUNCHER>"
+#define LAUNCHER_TAG "LAUNCHER> "
 
 void printArgumentError();
 
@@ -31,7 +31,7 @@ int processCount = 0;
 int main(int argc, char *argv[]) {
     system("ipcrm --all && killall Process && killall Receptor");
 
-    long long int tiempoInicio=tiempoActual();
+    long long int tiempoInicio = getTimestamp();
 
     initMessageQueue();
     FILE *fp = getFile(argc, argv);
@@ -129,7 +129,7 @@ void pintar(){
 }
 
 long long int duracionEjecucion(long long int tiempoInicio){
-    return tiempoActual()-tiempoInicio;
+    return getTimestamp()-tiempoInicio;
 }
 
 
