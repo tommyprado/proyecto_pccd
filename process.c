@@ -112,28 +112,32 @@ int main(int argc, char *argv[]){
         sem_post(&sharedMemoryPointer->nodeStatusSem);
         break;
     }
-    if(priority==CONSULTORES){
+    if(priority == CONSULTORES){
         sharedMemoryPointer->concurrentConsultCount=sharedMemoryPointer->concurrentConsultCount--;
-        if(sharedMemoryPointer->concurrentConsultCount>=1){
-            wakeNextInLine();
+        if(sharedMemoryPointer->concurrentConsultCount > 0){
+            sem_post(&sharedMemoryPointer->nextConsultoresSem);
         }
     }
     accessCS(sharedMemoryPointer->competitorTicket);
     sem_wait(&sharedMemoryPointer->nodeStatusSem);
-    sharedMemoryPointer->inSC = false;
-    removeProcessFromCount(sharedMemoryPointer, priority);
-    resetCompetitor(sharedMemoryPointer);
-    if (nodeHasProcesses(sharedMemoryPointer)){
-        printf("%sQuedan %d pagos, %d anulaciones, %d reservas y %d consultores\n",
-               processTag,
-               sharedMemoryPointer->nextPagosCount,
-               sharedMemoryPointer->nextAnulacionesCount,
-               sharedMemoryPointer->nextReservasCount,
-               sharedMemoryPointer->nextConsultoresCount);
-        wakeNextInLine();
-    } else {
-        printf("%sNo hay procesos, mandando %d replies\n", processTag, sharedMemoryPointer->pendingRequestsCount);
-        replyAll();
+    if (priority == CONSULTORES && sharedMemoryPointer->nextConsultoresCount > 1) {
+        removeProcessFromCount(sharedMemoryPointer, priority);
+    } else if (priority != CONSULTORES || (priority == CONSULTORES && sharedMemoryPointer->nextConsultoresCount == 1)) {
+        sharedMemoryPointer->inSC = false;
+        removeProcessFromCount(sharedMemoryPointer, priority);
+        resetCompetitor(sharedMemoryPointer);
+        if (nodeHasProcesses(sharedMemoryPointer)){
+            printf("%sQuedan %d pagos, %d anulaciones, %d reservas y %d consultores\n",
+                   processTag,
+                   sharedMemoryPointer->nextPagosCount,
+                   sharedMemoryPointer->nextAnulacionesCount,
+                   sharedMemoryPointer->nextReservasCount,
+                   sharedMemoryPointer->nextConsultoresCount);
+            wakeNextInLine();
+        } else {
+            printf("%sNo hay procesos, mandando %d replies\n", processTag, sharedMemoryPointer->pendingRequestsCount);
+            replyAll();
+        }
     }
     sem_post(&sharedMemoryPointer->nodeStatusSem);
     sndMsgToLauncher(TYPE_PROCESS_FINISHED);
