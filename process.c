@@ -12,7 +12,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-#define SC_WAIT 50
+#define SC_WAIT 20
 
 void initNode(int argc, char *argv[]);
 
