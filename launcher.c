@@ -15,10 +15,6 @@
 
 #define LAUNCHER_TAG "LAUNCHER> "
 
-#define ANSI_COLOR_MAGENTA "\x1b[35m"
-#define ANSI_COLOR_CYAN    "\x1b[36m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
-
 void printArgumentError();
 
 FILE * getFile(int argc, char *argv[]) ;
@@ -51,7 +47,7 @@ long long int primerInstanteSC(char line[200]);
 
 int main(int argc, char *argv[]) {
     system("ipcrm --all && killall Process && killall Receptor");
-
+    system("rm pagos.dat");
 
     time_t actualTime = time(0);
     struct tm *tlocal1 = localtime(&actualTime);
@@ -119,13 +115,8 @@ int main(int argc, char *argv[]) {
     long long int tiempoTotalSC = dameTiempoSeccionCritica();
 
     escribirTiempos(endTimeInSec - tiempoPrimeraSC, tiempoTotalSC);
+    pintar();
 
-    printf(ANSI_COLOR_MAGENTA "\ttiempos!!\n endTimeInSec: %lli\n tiempoPrimeraSC: %lli\n diferencia: %lli\n tiempoTotalSC: %lli" ANSI_COLOR_RESET "\n",endTimeInSec,tiempoPrimeraSC,endTimeInSec-tiempoPrimeraSC,tiempoTotalSC);
-
-
-//    pintar();
-
-    fclose(fp);// esto que carallo pinta aqui ??
 }
 
 void processLine(char line[LINE_LIMIT]) {
