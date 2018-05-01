@@ -210,7 +210,6 @@ void pintar(){
 
     system("gnuplot -persist ../scPorProceso.plot");
 
-
 }
 
 void escribirTiempos(long long int tiempoTotal, long long int tiempoSeccionCritica){

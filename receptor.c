@@ -30,17 +30,17 @@ int main(int argc, char *argv[]){
         updateRequestID(originTicket.requestID);
         char ticketString[100];
         ticketToString(ticketString, originTicket);
-        if(!nodeHasProcesses(sharedMemoryPointer) ||
+        if ((sharedMemoryPointer->inSC == true) && (sharedMemoryPointer->competitorTicket.priority == CONSULTORES)) {
+            sendReply(originTicket, nodeID);
+        } else if(!nodeHasProcesses(sharedMemoryPointer) ||
            (!sharedMemoryPointer->inSC && (compTickets(originTicket, sharedMemoryPointer->competitorTicket) == -1))) { // competitorTicket > originTicket?
-//            printf("%sEnviando reply %s\n", receptorTag, ticketString);
             sendReply(originTicket, nodeID);
             sharedMemoryPointer->competitorTicket.priority = NONE;
-            sem_post(&sharedMemoryPointer->nodeStatusSem);
-        } else{
-//            printf("%sGuardando request %s\n", receptorTag, ticketString);
-            saveRequest(originTicket);
-            sem_post(&sharedMemoryPointer->nodeStatusSem);
         }
+        else{
+            saveRequest(originTicket);
+        }
+        sem_post(&sharedMemoryPointer->nodeStatusSem);
     }
 }
 

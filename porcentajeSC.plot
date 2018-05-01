@@ -10,10 +10,11 @@ set style data histogram
 set style fill solid border
 
 
+unset xtics
+
 set xlabel
 set ylabel
 set key outside
-unset xtics
 set border 3
 set autoscale
 set style histogram rowstacked
