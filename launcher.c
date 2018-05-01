@@ -340,7 +340,7 @@ long long int conseguirPrimerAccesoSC(){
     FILE *fp;
     fp = fopen(DOC_PAGOS, "r");
     if (fp == NULL) {
-        fputs("File error", stderr);
+        perror("File error");
         exit(1);
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
@@ -350,7 +350,7 @@ long long int conseguirPrimerAccesoSC(){
 
     fp = fopen(DOC_ANULACIONES, "r");
     if (fp == NULL) {
-        fputs("File error", stderr);
+        perror("File error");
         exit(1);
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
@@ -360,7 +360,7 @@ long long int conseguirPrimerAccesoSC(){
 
     fp = fopen(DOC_PRERESERVAS, "r");
     if (fp == NULL) {
-        fputs("File error", stderr);
+        perror("File error");
         exit(1);
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
@@ -390,7 +390,7 @@ long long int conseguirUltimaSalidaSC(){
     FILE *fp;
     fp = fopen(DOC_PAGOS, "r");
     if (fp == NULL) {
-        fputs("File error", stderr);
+        perror("File error");
         exit(1);
     }
     while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
@@ -402,7 +402,7 @@ long long int conseguirUltimaSalidaSC(){
 
     fp = fopen(DOC_ANULACIONES, "r");
     if (fp == NULL) {
-        fputs("File error", stderr);
+        perror("File error");
         exit(1);
     }
     while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
@@ -413,7 +413,7 @@ long long int conseguirUltimaSalidaSC(){
 
     fp = fopen(DOC_PRERESERVAS, "r");
     if (fp == NULL) {
-        fputs("File error", stderr);
+        perror("File error");
         exit(1);
     }
     while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {

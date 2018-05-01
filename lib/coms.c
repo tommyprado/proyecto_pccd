@@ -5,10 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define REQUEST_ID_MULTIPLIER 100
-
-long getMsgType(ticket ticket) ;
-
 ticket receiveRequest (int nodeID) {
     ticketMessage message;
     int msqid = getNodeRequestMsqid(nodeID);
@@ -28,7 +24,7 @@ void sendRequest (ticket ticket, int node) {
     int msqid = getNodeRequestMsqid(node);
     ticketMessage message;
     message.ticket = ticket;
-    message.mtype = getMsgType(ticket);
+    message.mtype = ticket.pid;
     int msg = msgsnd(msqid, &message, sizeof(ticketMessage) - sizeof(long), 0);
     if(msg == -1) {
         perror("Error al enviar el ticket");
@@ -39,7 +35,7 @@ void sendRequest (ticket ticket, int node) {
 void sendReply (ticket ticket, int originID){
     int msqid = getNodeReplyMsqid(ticket.nodeID);
     ticketMessage message;
-    message.mtype = getMsgType(ticket);
+    message.mtype = ticket.pid;
     message.ticket = ticket;
     message.origin = originID;
     int msg = msgsnd(msqid, &message, sizeof(ticketMessage) - sizeof(long), 0);
@@ -49,16 +45,9 @@ void sendReply (ticket ticket, int originID){
     }
 }
 
-int receiveReply(ticket ticket) {
+void receiveReply(ticket ticket, ticketMessage *message) {
     int msqid = getNodeReplyMsqid(ticket.nodeID);
-    long type = getMsgType(ticket);
-    ticketMessage message;
-    msgrcv(msqid, &message, sizeof(message) - sizeof(long), type, 0);
-    return message.origin;
-}
-
-long getMsgType(ticket ticket) {
-    return ticket.requestID * REQUEST_ID_MULTIPLIER + ticket.nodeID;
+    msgrcv(msqid, message, sizeof(ticketMessage) - sizeof(long), ticket.pid, 0);
 }
 
 int getNodeReplyMsqid(int nodeID) {
