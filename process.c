@@ -47,17 +47,16 @@ int main(int argc, char *argv[]){
         bool reset = false;
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
         if (!nodeHasProcesses(sharedMemoryPointer)) {
-            printf("%sNodo vacío, entrando con prioridad %d\n", processTag, priority);
             addProcessToCount(sharedMemoryPointer, priority);
-            sem_post(&sharedMemoryPointer->nodeStatusSem);
+            printf("%sNodo vacío, entrando con prioridad %d\n", processTag, priority);
         }
         else if (priority >= sharedMemoryPointer->competitorTicket.priority) {
-            printf("%sProceso más prioritario que el actual", processTag);
+            printf("%sPrioridad %d ya en juego, esperando...\n", processTag, priority);
             addProcessToCount(sharedMemoryPointer, priority);
-            waitByPriority(sharedMemoryPointer, priority);
             sem_post(&sharedMemoryPointer->nodeStatusSem);
+            waitByPriority(sharedMemoryPointer, priority);
+            sem_wait(&sharedMemoryPointer->nodeStatusSem);
         }
-        sem_wait(&sharedMemoryPointer->nodeStatusSem);
         ticket mTicket = createTicket();
         if (compTickets(mTicket, sharedMemoryPointer->competitorTicket) == -1) {
             sharedMemoryPointer->competitorTicket = mTicket;
@@ -98,6 +97,9 @@ int main(int argc, char *argv[]){
     sharedMemoryPointer->inSC = false;
     removeProcessFromCount(sharedMemoryPointer, priority);
     if (nodeHasProcesses(sharedMemoryPointer)){
+        ticket ticket;
+        ticket.priority = NONE;
+        sharedMemoryPointer->competitorTicket = ticket;
         wakeNextInLine();
     } else {
         replyAll();
