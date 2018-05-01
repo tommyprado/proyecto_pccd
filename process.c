@@ -77,8 +77,9 @@ int main(int argc, char *argv[]){
                 char aux[200], aux2[2];
                 ticketToString(aux, sharedMemoryPointer->competitorTicket);
                 ticketToString(aux2, mTicket);
-                printf("Ticket que compite: %s Mi ticket: %s\n", aux, aux2);
+                printf("Reset debido a %s en %s\n", aux, aux2);
                 wakeNextInLine();
+                removeProcessFromCount(sharedMemoryPointer, priority);
                 reset = true;
                 break;
             }
