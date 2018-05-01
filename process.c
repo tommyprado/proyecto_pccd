@@ -44,6 +44,7 @@ int main(int argc, char *argv[]){
     initNode(argc, argv);
 
     while (1) {
+        bool reset = false;
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
         if (!nodeHasProcesses(sharedMemoryPointer)) {
             printf("%sNodo vacío, entrando con prioridad %d\n", processTag, priority);
@@ -58,7 +59,7 @@ int main(int argc, char *argv[]){
         }
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
         ticket mTicket = createTicket();
-        if (compTickets(mTicket, sharedMemoryPointer->competitorTicket) == 1) {
+        if (compTickets(mTicket, sharedMemoryPointer->competitorTicket) == -1) {
             sharedMemoryPointer->competitorTicket = mTicket;
         }
         char ticketString[100];
@@ -78,9 +79,13 @@ int main(int argc, char *argv[]){
                 ticketToString(aux2, mTicket);
                 printf("Ticket que compite: %s Mi ticket: %s\n", aux, aux2);
                 wakeNextInLine();
-                sem_post(&sharedMemoryPointer->nodeStatusSem);
-                continue;
+                reset = true;
+                break;
             }
+        }
+        if (reset) {
+            sem_post(&sharedMemoryPointer->nodeStatusSem);
+            continue;
         }
         sem_post(&sharedMemoryPointer->nodeStatusSem);
         break;
@@ -110,7 +115,7 @@ void replyPendingRequests(ticket mTicket) {
     int newPendingCount = 0;
     for (int i = 0; i < sharedMemoryPointer->pendingRequestsCount; ++i) {
         ticket pendingRequest = sharedMemoryPointer->pendingRequests[i];
-        if (compTickets(pendingRequest, mTicket) == 1) {
+        if (compTickets(pendingRequest, mTicket) == -1) {
             sendReply(pendingRequest, nodeID);
         } else {
             newPending[newPendingCount] = pendingRequest;

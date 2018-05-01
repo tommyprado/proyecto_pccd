@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 
     escribirTiempos(endTimeInSec-initTimeInSec,dameTiempoSeccionCritica());
 
-    pintar();
+//    pintar();
 
     fclose(fp);// esto que carallo pinta aqui ??
 

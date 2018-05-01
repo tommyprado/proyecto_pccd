@@ -28,14 +28,16 @@ int main(int argc, char *argv[]){
         ticket originTicket = receiveRequest(nodeID);
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
         updateRequestID(originTicket.requestID);
+        char ticketString[100];
+        ticketToString(ticketString, originTicket);
         if(!nodeHasProcesses(sharedMemoryPointer) ||
-           (nodeHasProcesses(sharedMemoryPointer) && (compTickets(sharedMemoryPointer->competitorTicket, originTicket) == 1))) { // competitorTicket > originTicket?
-            printf("%sEnviando reply a %d - %d\n", receptorTag, originTicket.nodeID, originTicket.pid);
+           (nodeHasProcesses(sharedMemoryPointer) && (compTickets(originTicket, sharedMemoryPointer->competitorTicket) == -1))) { // competitorTicket > originTicket?
+//            printf("%sEnviando reply %s\n", receptorTag, ticketString);
             sendReply(originTicket, nodeID);
             sharedMemoryPointer->competitorTicket.priority = NONE;
             sem_post(&sharedMemoryPointer->nodeStatusSem);
         } else{
-            printf("%sGuardando request de %d\n", receptorTag, originTicket.pid);
+//            printf("%sGuardando request %s\n", receptorTag, ticketString);
             saveRequest(originTicket);
             sem_post(&sharedMemoryPointer->nodeStatusSem);
         }

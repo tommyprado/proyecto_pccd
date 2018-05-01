@@ -2,10 +2,10 @@
 #include <stdio.h>
 
 int compTickets(ticket ticket1, ticket ticket2) {
-    if (ticket1.priority < ticket2.priority) {
+    if (ticket1.priority > ticket2.priority) {
         return 1;
     }
-    if (ticket1.priority > ticket2.priority) {
+    if (ticket1.priority < ticket2.priority) {
         return -1;
     }
     else {
