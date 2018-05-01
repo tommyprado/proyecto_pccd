@@ -85,7 +85,7 @@ int main(int argc, char *argv[]){
                 printf("%sReply %s ya no válida para %s\n", processTag, ticketString2, ticketString1);
                 continue;
             }
-            printf("%sRecibido el reply número %d del nodo %i\n", processTag, replyCont, message.origin);
+            printf("%sRecibido el reply número %d del nodo %i para %s\n", processTag, replyCont + 1, message.origin, ticketString1);
             if (compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
                 char aux[200], aux2[2];
                 ticketToString(aux, sharedMemoryPointer->competitorTicket);
