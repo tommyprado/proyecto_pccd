@@ -38,6 +38,8 @@ int totalNodes, nodeID, pid, priority;
 
 char processTag[100];
 
+char stringTicket[10];
+
 int main(int argc, char *argv[]){
     initNode(argc, argv);
 
@@ -143,9 +145,10 @@ ticket createTicket() {
 
 void accessCS (ticket ticket){
     sndTicketToLauncher(TYPE_ACCESS_CS, ticket);
-    printf("%sEn sección crítica\n", processTag);
+    ticketToString(stringTicket, sharedMemoryPointer->competitorTicket);
+    printf("%sEn sección crítica con ticket %s\n", processTag, stringTicket);
     usleep(SC_WAIT * 1000);
-    printf("%sSaliendo de sección crítica\n", processTag);
+    printf("%sSaliendo de sección crítica con ticket %s\n", processTag, stringTicket);
     sndTicketToLauncher(TYPE_EXIT_CS, ticket);
 }
 
@@ -161,7 +164,7 @@ void initNode(int argc, char *argv[]) {
         printWrongUsageError();
     }
     pid = getpid();
-    sprintf(processTag, "N%d %d> ", nodeID, pid);
+    sprintf(processTag, "N%d -> ", nodeID);
 
     sharedMemoryPointer = getSharedMemory(nodeID);
 }

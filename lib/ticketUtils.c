@@ -28,5 +28,5 @@ int compTickets(ticket ticket1, ticket ticket2) {
 }
 
 void ticketToString(char *string, ticket ticket) {
-    sprintf(string, "[%d, %d, %d, %d]", ticket.priority, ticket.requestID, ticket.nodeID, ticket.pid);
+    sprintf(string, "[%d, %d, %d]", ticket.priority, ticket.requestID, ticket.nodeID);
 }
