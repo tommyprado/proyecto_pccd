@@ -12,7 +12,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-#define SC_WAIT 20
+#define SC_WAIT 2000
 
 void initNode(int argc, char *argv[]);
 
@@ -56,6 +56,7 @@ int main(int argc, char *argv[]){
         reset = false;
         if (!nodeHasProcesses(sharedMemoryPointer)) {
             printf("%sNodo vacío, entrando con prioridad %d\n", processTag, priority);
+
             addProcessToCount(sharedMemoryPointer, priority);
         }
         else if (&sharedMemoryPointer->inSC || priority >= sharedMemoryPointer->competitorTicket.priority) {
@@ -111,7 +112,12 @@ int main(int argc, char *argv[]){
         sem_post(&sharedMemoryPointer->nodeStatusSem);
         break;
     }
-
+    if(priority==CONSULTORES){
+        sharedMemoryPointer->concurrentConsultCount=sharedMemoryPointer->concurrentConsultCount--;
+        if(sharedMemoryPointer->concurrentConsultCount>=1){
+            wakeNextInLine();
+        }
+    }
     accessCS(sharedMemoryPointer->competitorTicket);
     sem_wait(&sharedMemoryPointer->nodeStatusSem);
     sharedMemoryPointer->inSC = false;
