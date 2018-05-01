@@ -49,6 +49,8 @@ long long int primerInstanteSC(char line[200]);
 
 void imprimeMensajeAFichero();
 
+long long int conseguirPrimerAccesoSC();
+
 
 int main(int argc, char *argv[]) {
     system("ipcrm --all && killall Process && killall Receptor");
@@ -97,19 +99,9 @@ int main(int argc, char *argv[]) {
     printf("%lli tiempo total seccion critica pagos\n", dameTiempoSeccionCritica());
     printf("%lli tiempo total\n", endTimeInSec - initTimeInSec);
 
-    //esto para conseguir el primer instante de acceso a la SC
-    fp = fopen("pagos.dat", "r");
-    if (fp == NULL) {
-        fputs("File error", stderr);
-        exit(1);
-    }
-    long long int tiempoPrimeraSC=0;
-    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-        tiempoPrimeraSC = primerInstanteSC(nextLine);
 
-        printf("el primer instante de seccion critica es : %lli \n", tiempoPrimeraSC);
-    }
-    fclose(fp);
+    long long int tiempoPrimeraSC = conseguirPrimerAccesoSC();
+
 
     long long int tiempoTotalSC = dameTiempoSeccionCritica();
 
@@ -345,4 +337,60 @@ void imprimeMensajeAFichero() {
 
 
     }
+}
+
+long long int conseguirPrimerAccesoSC(){
+    //esto para conseguir el primer instante de acceso a la SC
+    char nextLine[LINE_LIMIT];
+    long long int tiempoPrimeraSCPagos=0;
+    long long int tiempoPrimeraSCAnulaciones=0;
+    long long int tiempoPrimeraSCPrereservas=0;
+
+    FILE *fp;
+    fp = fopen(DOC_PAGOS, "r");
+    if (fp == NULL) {
+        fputs("File error", stderr);
+        exit(1);
+    }
+    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+        tiempoPrimeraSCPagos = primerInstanteSC(nextLine);
+
+        printf("el primer instante de seccion critica es : %lli \n", tiempoPrimeraSCPagos);
+    }
+    fclose(fp);
+
+    fp = fopen(DOC_ANULACIONES, "r");
+    if (fp == NULL) {
+        fputs("File error", stderr);
+        exit(1);
+    }
+    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+        tiempoPrimeraSCAnulaciones= primerInstanteSC(nextLine);
+
+        printf("el primer instante de seccion critica es : %lli \n", tiempoPrimeraSCAnulaciones);
+    }
+    fclose(fp);
+
+    fp = fopen(DOC_PRERESERVAS, "r");
+    if (fp == NULL) {
+        fputs("File error", stderr);
+        exit(1);
+    }
+    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+        tiempoPrimeraSCPrereservas = primerInstanteSC(nextLine);
+
+        printf("el primer instante de seccion critica es : %lli \n", tiempoPrimeraSCPrereservas);
+    }
+    fclose(fp);
+
+    if(tiempoPrimeraSCPagos>=tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPagos>=tiempoPrimeraSCPrereservas){
+        return tiempoPrimeraSCPagos;
+    }
+    if(tiempoPrimeraSCAnulaciones>= tiempoPrimeraSCPagos && tiempoPrimeraSCAnulaciones>=tiempoPrimeraSCPrereservas){
+        return tiempoPrimeraSCAnulaciones;
+    }
+    if(tiempoPrimeraSCPrereservas >= tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPrereservas>=tiempoPrimeraSCPagos){
+        return tiempoPrimeraSCPrereservas;
+    }
+
 }
