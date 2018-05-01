@@ -69,29 +69,23 @@ int main(int argc, char *argv[]){
         ticketToString(ticketString1, mTicket);
         printf("%sPidiendo acceso para %s\n", processTag, ticketString1);
         char aux3[100];
-        ticketToString(aux3, sharedMemoryPointer->competitorTicket);
-        printf("Competiremos con el ticket %s \n", aux3);
+        ticketToString(aux3, mTicket);
+        //printf("Competiremos con el ticket %s \n", aux3);
         replyPendingRequests(mTicket);
         sendRequests(mTicket, totalNodes);
-        printf("%sEsperando replies...\n", processTag);
+        printf("%sEsperando replies para: %s\n", processTag, aux3);
         int replyCont = 0;
         while (replyCont < totalNodes - 1) {
-            sem_post(&sharedMemoryPointer->nodeStatusSem);
             ticketMessage message;
+            sem_post(&sharedMemoryPointer->nodeStatusSem);
             receiveReply(mTicket, &message);
             sem_wait(&sharedMemoryPointer->nodeStatusSem);
             if (compTickets(mTicket, message.ticket) != 0) {
-                ticketToString(ticketString1, mTicket);
-                ticketToString(ticketString2, message.ticket);
-                printf("%sReply %s ya no válida para %s\n", processTag, ticketString2, ticketString1);
+                //printf("%sReply %s ya no válida para %s\n", processTag, ticketString2, ticketString1);
                 continue;
             }
-            printf("%sRecibido el reply número %d del nodo %i\n", processTag, replyCont, message.origin);
+            //printf("%sRecibido el reply número %d del nodo %i\n", processTag, replyCont, message.origin);
             if (compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
-                char aux[200], aux2[2];
-                ticketToString(aux, sharedMemoryPointer->competitorTicket);
-                ticketToString(aux2, mTicket);
-                printf("%sReset debido a %s en %s\n",processTag, aux, aux2);
                 wakeNextInLine();
                 removeProcessFromCount(sharedMemoryPointer, priority);
                 reset = true;
@@ -101,7 +95,8 @@ int main(int argc, char *argv[]){
         }
         if (reset) {
             ticketToString(ticketString1, mTicket);
-            printf("%sReset para %s\n", processTag, ticketString1);
+            ticketToString(ticketString2,sharedMemoryPointer->competitorTicket);
+            printf("%sNuestro ticket: %s deja de ser válido \n", processTag, ticketString1);
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             continue;
         }
@@ -116,12 +111,12 @@ int main(int argc, char *argv[]){
     removeProcessFromCount(sharedMemoryPointer, priority);
     resetCompetitor(sharedMemoryPointer);
     if (nodeHasProcesses(sharedMemoryPointer)){
-        printf("%sQuedan %d pagos, %d anulaciones, %d reservas y %d consultores\n",
+        /*printf("%sQuedan %d pagos, %d anulaciones, %d reservas y %d consultores\n",
                processTag,
                sharedMemoryPointer->nextPagosCount,
                sharedMemoryPointer->nextAnulacionesCount,
                sharedMemoryPointer->nextReservasCount,
-               sharedMemoryPointer->nextConsultoresCount);
+               sharedMemoryPointer->nextConsultoresCount);*/
         wakeNextInLine();
     } else {
         printf("%sNo hay procesos, mandando %d replies\n", processTag, sharedMemoryPointer->pendingRequestsCount);
@@ -151,10 +146,10 @@ void replyPendingRequests(ticket mTicket) {
         ticket pendingRequest = sharedMemoryPointer->pendingRequests[i];
         ticketToString(aux, pendingRequest);
         if (compTickets(pendingRequest, mTicket) == -1) {
-            printf("%sEnviando reply %s\n", processTag, aux);
+            //printf("%sEnviando reply %s\n", processTag, aux);
             sendReply(pendingRequest, nodeID);
         } else {
-            printf("%sGuardando en nuevo array %s\n", processTag, aux);
+            //printf("%sGuardando en nuevo array %s\n", processTag, aux);
             newPending[newPendingCount] = pendingRequest;
             newPendingCount++;
         }
@@ -167,6 +162,7 @@ void replyPendingRequests(ticket mTicket) {
 }
 
 void wakeNextInLine() {
+    printf("PRUEBA PRUEBA \n");
     if (priorityHasProcesses(sharedMemoryPointer, PAGOS)) {
         sem_post(&sharedMemoryPointer->nextPagosSem);
     } else if (priorityHasProcesses(sharedMemoryPointer, ANULACIONES)) {
