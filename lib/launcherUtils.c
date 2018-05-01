@@ -41,13 +41,13 @@ launcherMessage recepcionCualquierMensaje() {
 
 void tipoAcceso(char *nombreFichero, launcherMessage message){
     FILE * fileSC = fopen(nombreFichero, "a");
-    fprintf(fileSC, "%lli 1\n", message.t);
+    fprintf(fileSC, "%lli 1 %i\n", message.t,message.ticket.pid);
     fclose(fileSC);
 }
 
 void tipoSalida(char *nombreFichero, launcherMessage message){
     FILE * fileSC = fopen(nombreFichero, "a");
-    fprintf(fileSC, "%lli 0\n", message.t);
+    fprintf(fileSC, "%lli 0 %i\n", message.t,message.ticket.pid);
     fclose(fileSC);
 }
 

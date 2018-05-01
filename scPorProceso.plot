@@ -8,7 +8,6 @@ set key outside
 
 set yrange [0:*]
 
-set style column 1  lt rgb "green"
 
 
 set boxwidth 0.6 relative

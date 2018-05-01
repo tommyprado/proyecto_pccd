@@ -93,10 +93,8 @@ int main(int argc, char *argv[]) {
 
     textoTerminalFinEjecucion(initTime, initTimeInSec);
 
-
     long long int tiempoPrimeraSC = conseguirPrimerAccesoSC();
     long long int tiempoUltimaSC = conseguirUltimaSalidaSC();
-
 
     long long int tiempoSCPagos = dameTiempoSeccionCritica(DOC_PAGOS);
     long long int tiempoSCAnulaciones = dameTiempoSeccionCritica(DOC_ANULACIONES);
@@ -106,10 +104,10 @@ int main(int argc, char *argv[]) {
 
     long long int tiempoTotalSC=tiempoSCPagos+tiempoSCAnulaciones+tiempoSCPrereservas+tiempoSCConsultores;
 
-/* comprobacion tiempos
-    printf("tiempo 1º sc %lli, SC pagos %lli, SC prereservas %lli, SC anulaciones %lli, SC total %lli \n",tiempoPrimeraSC,tiempoSCPagos,tiempoSCPrereservas,tiempoSCAnulaciones,tiempoTotalSC);
+
+    printf("tiempo 1º sc %lli, SC pagos %lli, SC prereservas %lli, SC anulaciones %lli, SC consultores %lli, SC total %lli \n",tiempoPrimeraSC,tiempoSCPagos,tiempoSCPrereservas,tiempoSCAnulaciones,tiempoSCConsultores,tiempoTotalSC);
     printf("ultima SC %lli, diferencia entre 1ºsc y ultima %lli\n",tiempoUltimaSC,tiempoUltimaSC-tiempoPrimeraSC);
-*/
+
 
     escribirTiempos(tiempoUltimaSC - tiempoPrimeraSC, tiempoTotalSC);
     escribirTiemposProcesos(tiempoSCPagos,tiempoSCAnulaciones,tiempoSCPrereservas);
@@ -248,7 +246,7 @@ long long int dameTiempoSeccionCritica(char *documento){
 
     FILE *fp;
     fp = fopen ( documento , "r" );
-    if (fp==NULL) {fputs ("File error",stderr); exit (1);}
+    if (fp==NULL) {perror ("File error"); exit (1);}
     while (1){
         if((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             contadorLineas++;
@@ -367,8 +365,7 @@ long long int conseguirPrimerAccesoSC(){
     FILE *fp;
     fp = fopen(DOC_PAGOS, "r");
     if (fp == NULL) {
-        perror("File error");
-        exit(1);
+        perror("File error 1");
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoPrimeraSCPagos = primerInstanteSC(nextLine);
@@ -377,8 +374,7 @@ long long int conseguirPrimerAccesoSC(){
 
     fp = fopen(DOC_ANULACIONES, "r");
     if (fp == NULL) {
-        perror("File error");
-        exit(1);
+        perror("File error 2");
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoPrimeraSCAnulaciones= primerInstanteSC(nextLine);
@@ -387,8 +383,7 @@ long long int conseguirPrimerAccesoSC(){
 
     fp = fopen(DOC_PRERESERVAS, "r");
     if (fp == NULL) {
-        perror("File error");
-        exit(1);
+        perror("File error 3");
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoPrimeraSCPrereservas = primerInstanteSC(nextLine);
@@ -397,8 +392,7 @@ long long int conseguirPrimerAccesoSC(){
 
     fp = fopen(DOC_CONSULTORES, "r");
     if (fp == NULL) {
-        perror("File error");
-        exit(1);
+        perror("File error 4");
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoPrimeraSCConsultores = primerInstanteSC(nextLine);
@@ -430,7 +424,7 @@ long long int conseguirUltimaSalidaSC(){
     FILE *fp;
     fp = fopen(DOC_PAGOS, "r");
     if (fp == NULL) {
-        perror("File error");
+        perror("File error 5");
         exit(1);
     }
     while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
@@ -442,8 +436,7 @@ long long int conseguirUltimaSalidaSC(){
 
     fp = fopen(DOC_ANULACIONES, "r");
     if (fp == NULL) {
-        perror("File error");
-        exit(1);
+        perror("File error 6");
     }
     while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoUltimaSCAnulaciones = primerInstanteSC(nextLine);
@@ -453,8 +446,7 @@ long long int conseguirUltimaSalidaSC(){
 
     fp = fopen(DOC_PRERESERVAS, "r");
     if (fp == NULL) {
-        perror("File error");
-        exit(1);
+        perror("File error 7");
     }
     while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoUltimaSCPrereservas = primerInstanteSC(nextLine);
@@ -463,8 +455,7 @@ long long int conseguirUltimaSalidaSC(){
 
     fp = fopen(DOC_CONSULTORES, "r");
     if (fp == NULL) {
-        perror("File error");
-        exit(1);
+        perror("File error 8");
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoUltimaSCConsultores = primerInstanteSC(nextLine);
