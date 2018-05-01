@@ -42,18 +42,19 @@ char processTag[100];
 
 char stringTicket[10];
 
+bool reset = false;
+
 int main(int argc, char *argv[]){
     initNode(argc, argv);
     char ticketString1[100];
     char ticketString2[100];
     while (1) {
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
-        bool reset = false;
         if (!nodeHasProcesses(sharedMemoryPointer)) {
             addProcessToCount(sharedMemoryPointer, priority);
             printf("%sNodo vacío, entrando con prioridad %d\n", processTag, priority);
         }
-        else if (priority >= sharedMemoryPointer->competitorTicket.priority) {
+        else if (&sharedMemoryPointer->inSC || priority >= sharedMemoryPointer->competitorTicket.priority) {
             printf("%sPrioridad %d ya en juego, esperando...\n", processTag, priority);
             addProcessToCount(sharedMemoryPointer, priority);
             sem_post(&sharedMemoryPointer->nodeStatusSem);
@@ -62,9 +63,9 @@ int main(int argc, char *argv[]){
         }
         ticket mTicket = createTicket();
         if (compTickets(mTicket, sharedMemoryPointer->competitorTicket) == -1) {
-            ticketToString(ticketString1, sharedMemoryPointer->competitorTicket);
-            ticketToString(ticketString2, mTicket);
             if (sharedMemoryPointer->competitorTicket.priority != NONE) {
+                ticketToString(ticketString1, sharedMemoryPointer->competitorTicket);
+                ticketToString(ticketString2, mTicket);
                 printf("%sSustituyendo %s por %s\n", processTag, ticketString1, ticketString2);
             }
             sharedMemoryPointer->competitorTicket = mTicket;
@@ -94,7 +95,7 @@ int main(int argc, char *argv[]){
             }
         }
         if (reset) {
-            resetCompetitor(sharedMemoryPointer);
+            reset = false;
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             continue;
         }
@@ -114,7 +115,6 @@ int main(int argc, char *argv[]){
         replyAll();
     }
     sem_post(&sharedMemoryPointer->nodeStatusSem);
-
     sndMsgToLauncher(TYPE_PROCESS_FINISHED);
 }
 

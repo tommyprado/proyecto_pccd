@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 
     char *nombreFichero="pagos.dat";
 
-    for (int j = 0; j < processCount ; ++j) {
+    for (int j = 0; j < processCount * 2; ++j) {
         launcherMessage message= recepcionCualquierMensaje();
         if(message.mtype == TYPE_ACCESS_CS){
             tipoAcceso( nombreFichero,  message);
