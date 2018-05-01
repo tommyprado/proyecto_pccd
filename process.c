@@ -64,7 +64,9 @@ int main(int argc, char *argv[]){
         sendRequests(mTicket, totalNodes);
         printf("%sEsperando replies...\n", processTag);
         for (int i = 1; i < totalNodes; ++i) {
+            sem_post(&sharedMemoryPointer->nodeStatusSem);
             receiveReply(mTicket);
+            sem_wait(&sharedMemoryPointer->nodeStatusSem);
             printf("Recibido %d reply\n", i + 1);
             if (compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
                 char aux[200], aux2[2];
