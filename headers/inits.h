@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include "ticketUtils.h"
-#define PENDING_REQUESTS_LIMIT 1000000
+#define PENDING_REQUESTS_LIMIT 10000
 #define SHM_KEY 20000
 
 typedef struct {

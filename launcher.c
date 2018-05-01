@@ -23,7 +23,9 @@ void processLine(char line[LINE_LIMIT]);
 
 void execReceptor(int node);
 
-void execProcess(int node, int nodeCount);
+int getPriority(char *string);
+
+void execProcess(int priority, int node, int nodeCount) ;
 
 int nodeCount = 0;
 
@@ -79,12 +81,12 @@ void processLine(char line[LINE_LIMIT]) {
         }
     } else if (strcmp(split[0], "+") == 0) {
         int node = atoi(split[1]);
-//        int type = convertType(split[2]);
+        int priority = getPriority(split[2]);
         int count = atoi(split[3]);
         processCount += count;
         for (int i = 0; i < count; ++i) {
             if (fork() == 0) {
-                execProcess(node, nodeCount);
+                execProcess(priority, node, nodeCount);
             }
         }
     } else if (strcmp(split[0], "-") == 0) {
@@ -93,11 +95,27 @@ void processLine(char line[LINE_LIMIT]) {
     }
 }
 
-void execProcess(int node, int nodeCount) {
-    char nodeString[100], nodeCountString[100];
+int getPriority(char *string) {
+    if (strcmp(string, "Pag") == 0) {
+        return PAGOS;
+    }
+    if (strcmp(string, "Anu") == 0) {
+        return ANULACIONES;
+    }
+    if (strcmp(string, "Res") == 0) {
+        return RESERVAS;
+    }
+    if (strcmp(string, "Con") == 0) {
+        return CONSULTORES;
+    }
+}
+
+void execProcess(int priority, int node, int nodeCount) {
+    char nodeString[100], nodeCountString[100], priorityString[100];
     sprintf(nodeString, "%d", node);
     sprintf(nodeCountString, "%d", nodeCount);
-    execl("./Process", "./Process", nodeString, nodeCountString, NULL);
+    sprintf(priorityString, "%d", priority);
+    execl("./Process", "./Process", priorityString, nodeString, nodeCountString, NULL);
 }
 
 void execReceptor(int node) {

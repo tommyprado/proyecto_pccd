@@ -26,18 +26,18 @@ int main(int argc, char *argv[]){
     initReceptor(argc, argv);
     while(1) {
         ticket originTicket = receiveRequest(nodeID);
-        updateRequestID(originTicket.requestID);
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
+        updateRequestID(originTicket.requestID);
         if(!nodeHasProcesses(sharedMemoryPointer) ||
            (nodeHasProcesses(sharedMemoryPointer) && (compTickets(sharedMemoryPointer->competitorTicket, originTicket) == 1))) { // competitorTicket > originTicket?
-            sem_post(&sharedMemoryPointer->nodeStatusSem);
             printf("%sEnviando reply a %d - %d\n", receptorTag, originTicket.nodeID, originTicket.pid);
             sendReply(originTicket, nodeID);
-        } else{
-            // TODO: reset
+            sharedMemoryPointer->competitorTicket.priority = NONE;
             sem_post(&sharedMemoryPointer->nodeStatusSem);
+        } else{
             printf("%sGuardando request de %d\n", receptorTag, originTicket.pid);
             saveRequest(originTicket);
+            sem_post(&sharedMemoryPointer->nodeStatusSem);
         }
     }
 }
@@ -59,11 +59,9 @@ void printWrongUsageError() {
 }
 
 void updateRequestID(int originRequestID){
-    sem_wait(&sharedMemoryPointer->competitorTicketSem);
     if(originRequestID >= sharedMemoryPointer->maxRequestID){
         sharedMemoryPointer->maxRequestID = originRequestID + 1;
     }
-    sem_post(&sharedMemoryPointer->competitorTicketSem);
 }
 
 void saveRequest (ticket ticket){

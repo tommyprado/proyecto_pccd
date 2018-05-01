@@ -7,7 +7,7 @@
 #define ANULACIONES 1
 #define RESERVAS 2
 #define CONSULTORES 3
-#define NONE -1
+#define NONE 4
 
 typedef struct
 {

@@ -30,9 +30,10 @@ void sendRequest (ticket ticket, int node) {
     int msqid = getNodeRequestMsqid(node);
     ticketMessage message;
     message.ticket = ticket;
+    message.mtype = getMsgType(ticket);
     int msg = msgsnd(msqid, &message, sizeof(ticketMessage) - sizeof(long), 0);
     if(msg == -1) {
-        printf("Error al enviar el ticket\n");
+        perror("Error al enviar el ticket");
         exit(1);
     }
 }
@@ -45,7 +46,7 @@ void sendReply (ticket ticket, int originID){
     message.origin = originID;
     int msg = msgsnd(msqid, &message, sizeof(ticketMessage) - sizeof(long), 0);
     if(msg == -1) {
-        printf("Error al enviar el ticket\n");
+        perror("Error al enviar el reply");
         exit(1);
     }
 }
@@ -66,7 +67,7 @@ int getNodeReplyMsqid(int nodeID) {
     int msqid = msgget(key, 0666);
     if (msqid == -1)
     {
-        printf("Error recuperando buzón\n");
+        perror("Error recuperando buzón");
         exit (-1);
     }
     return msqid;
@@ -77,7 +78,7 @@ int getNodeRequestMsqid(int nodeID) {
     int msqid = msgget(key, 0666);
     if (msqid == -1)
     {
-        printf("Error recuperando buzón\n");
+        perror("Error recuperando buzón");
         exit (-1);
     }
     return msqid;
@@ -88,7 +89,7 @@ int getMsqid(int key) {
     int msqid = msgget(key, 0666);
     if (msqid == -1)
     {
-        printf("Error recuperando buzón\n");
+        perror("Error recuperando buzón");
         exit (-1);
     }
     return msqid;

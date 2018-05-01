@@ -35,19 +35,24 @@ sharedMemory * initSharedMemory(int nodeID) {
     sharedMemoryPointer = (sharedMemory *) shmat(id, NULL, 0);
 
     initSemaphore(&sharedMemoryPointer->nodeStatusSem, 1);
-    initSemaphore(&sharedMemoryPointer->competitorTicketSem, 1);
     initSemaphore(&sharedMemoryPointer->nextPagosSem, 0);
+    initSemaphore(&sharedMemoryPointer->nextAnulacionesSem, 0);
+    initSemaphore(&sharedMemoryPointer->nextReservasSem, 0);
+    initSemaphore(&sharedMemoryPointer->nextConsultoresSem, 0);
 
     ticket ticket;
     ticket.nodeID = nodeID;
     ticket.requestID = 0;
+    ticket.priority = NONE;
     sharedMemoryPointer->competitorTicket = ticket;
 
     sharedMemoryPointer->maxRequestID = 0;
     sharedMemoryPointer->pendingRequestsCount = 0;
-    sharedMemoryPointer->nextPagosCount = 0;
 
-    sharedMemoryPointer->hasProcesses = false;
+    sharedMemoryPointer->nextPagosCount = 0;
+    sharedMemoryPointer->nextAnulacionesCount = 0;
+    sharedMemoryPointer->nextReservasCount = 0;
+    sharedMemoryPointer->nextConsultoresCount = 0;
 
     return sharedMemoryPointer;
 }

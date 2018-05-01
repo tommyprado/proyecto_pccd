@@ -13,7 +13,7 @@ bool priorityHasProcesses(sharedMemory *sharedMemoryPointer, int priority) {
         case CONSULTORES:
             return sharedMemoryPointer->nextConsultoresCount == 0;
         default:
-            printf("Error en las prioridades\n");
+            printf("Prioridad %d no soportada (priorityHasProcesses)\n", priority);
     }
 }
 
@@ -32,7 +32,7 @@ void removeProcessFromCount(sharedMemory *sharedMemoryPointer, int priority) {
             sharedMemoryPointer->nextConsultoresCount = sharedMemoryPointer->nextConsultoresCount - 1;
             break;
         default:
-            printf("Error en las prioridades\n");
+            printf("Prioridad %d no soportada(removeProcessToCount)\n", priority);
     }
 }
 
@@ -51,16 +51,16 @@ void addProcessToCount(sharedMemory *sharedMemoryPointer, int priority) {
             sharedMemoryPointer->nextConsultoresCount = sharedMemoryPointer->nextConsultoresCount + 1;
             break;
         default:
-            printf("Error en las prioridades\n");
+            printf("Prioridad %d no soportada (addProcessToCount)\n", priority);
     }
 }
 
 bool nodeHasProcesses(sharedMemory *sharedMemoryPointer) {
     return
-            sharedMemoryPointer->nextPagosCount == 0 &&
-            sharedMemoryPointer->nextAnulacionesCount == 0 &&
-            sharedMemoryPointer->nextReservasCount == 0 &&
-            sharedMemoryPointer->nextConsultoresCount == 0;
+            sharedMemoryPointer->nextPagosCount != 0 ||
+            sharedMemoryPointer->nextAnulacionesCount != 0 ||
+            sharedMemoryPointer->nextReservasCount != 0 ||
+            sharedMemoryPointer->nextConsultoresCount != 0;
 }
 
 void waitByPriority(sharedMemory *sharedMemoryPointer, int priority) {
@@ -74,7 +74,7 @@ void waitByPriority(sharedMemory *sharedMemoryPointer, int priority) {
         case CONSULTORES:
             sem_wait(&sharedMemoryPointer->nextConsultoresSem);
         default:
-            printf("Error en las prioridades\n");
+            printf("Prioridad %d no soportada (waitByPriority)\n", priority);
     }
 }
 
@@ -82,13 +82,17 @@ void postByPriority(sharedMemory *sharedMemoryPointer, int priority) {
     switch (priority) {
         case PAGOS:
             sem_post(&sharedMemoryPointer->nextPagosSem);
+            break;
         case ANULACIONES:
             sem_post(&sharedMemoryPointer->nextAnulacionesSem);
+            break;
         case RESERVAS:
             sem_post(&sharedMemoryPointer->nextReservasSem);
+            break;
         case CONSULTORES:
             sem_post(&sharedMemoryPointer->nextConsultoresSem);
+            break;
         default:
-            printf("Error en las prioridades\n");
+            printf("Prioridad %d no soportada (postByPriority)\n", priority);
     }
 }

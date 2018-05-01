@@ -12,8 +12,6 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-#define PENDING_REQUESTS_LIMIT 1000000
-
 #define SC_WAIT 500
 
 void initNode(int argc, char *argv[]);
@@ -28,9 +26,9 @@ void accessCS (ticket ticket);
 
 ticket createTicket();
 
-void replyPendingRequests(ticket ticket);
-
 void wakeNextInLine();
+
+void replyPendingRequests(ticket mTicket) ;
 
 sharedMemory *sharedMemoryPointer;
 
@@ -44,24 +42,29 @@ int main(int argc, char *argv[]){
     while (1) {
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
         if (!nodeHasProcesses(sharedMemoryPointer)) {
+            printf("%sNodo vacío, entrando con prioridad %d\n", processTag, priority);
             addProcessToCount(sharedMemoryPointer, priority);
-            postByPriority(sharedMemoryPointer, priority);
             sem_post(&sharedMemoryPointer->nodeStatusSem);
-            break;
         }
-
-        if (priority >= sharedMemoryPointer->competitorTicket.priority) {
-            sem_post(&sharedMemoryPointer->nodeStatusSem);
+        else if (priority >= sharedMemoryPointer->competitorTicket.priority) {
+            printf("%sProceso más prioritario que el actual", processTag);
+            addProcessToCount(sharedMemoryPointer, priority);
             waitByPriority(sharedMemoryPointer, priority);
-            sem_wait(&sharedMemoryPointer->nodeStatusSem);
+            sem_post(&sharedMemoryPointer->nodeStatusSem);
         }
-
-        ticket ticket = createTicket();
-        replyPendingRequests(ticket);
-        sendRequests(ticket, totalNodes);
+        sem_wait(&sharedMemoryPointer->nodeStatusSem);
+        ticket mTicket = createTicket();
+        char ticketString[100];
+        ticketToString(ticketString, mTicket);
+        printf("%sPidiendo acceso para %s\n", processTag, ticketString);
+        replyPendingRequests(mTicket);
+        sendRequests(mTicket, totalNodes);
+        printf("%sEsperando replies...\n", processTag);
         for (int i = 0; i < totalNodes; ++i) {
-            receiveReply(ticket);
-            if (compTickets(sharedMemoryPointer->competitorTicket, ticket) != 0) {
+            receiveReply(mTicket);
+            printf("Recibido %d reply", i);
+            if (compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
+                wakeNextInLine();
                 sem_post(&sharedMemoryPointer->nodeStatusSem);
                 continue;
             }
@@ -80,12 +83,12 @@ int main(int argc, char *argv[]){
     sndMsgToLauncher(TYPE_PROCESS_FINISHED);
 }
 
-void replyPendingRequests(ticket ticket) {
+void replyPendingRequests(ticket mTicket) {
     ticket newPending[PENDING_REQUESTS_LIMIT];
     int newPendingCount = 0;
     for (int i = 0; i < sharedMemoryPointer->pendingRequestsCount; ++i) {
         ticket pendingRequest = sharedMemoryPointer->pendingRequests[i];
-        if (compTickets(pendingRequest, ticket) == -1) {
+        if (compTickets(pendingRequest, mTicket) == -1) {
             sendReply(pendingRequest, nodeID);
         } else {
             newPending[newPendingCount] = pendingRequest;
@@ -130,9 +133,9 @@ void initNode(int argc, char *argv[]) {
         printWrongUsageError();
         exit(0);
     }
-    nodeID = atoi(argv[1]);
-    totalNodes = atoi(argv[2]);
-    priority = atoi(argv[3]);
+    priority = atoi(argv[1]);
+    nodeID = atoi(argv[2]);
+    totalNodes = atoi(argv[3]);
     if (nodeID > totalNodes) {
         printWrongUsageError();
     }
@@ -143,7 +146,7 @@ void initNode(int argc, char *argv[]) {
 }
 
 void printWrongUsageError() {
-    printf("Wrong arguments\nUsage: ./Process priority nodeID totalNodes mode (nodeID <= totalNodes)\n");
+    printf("Wrong arguments\nUsage: ./Process priority nodeID totalNodes (nodeID <= totalNodes)\n");
 }
 
 #pragma clang diagnostic pop
