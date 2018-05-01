@@ -54,16 +54,23 @@ int main(int argc, char *argv[]){
         }
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
         ticket mTicket = createTicket();
+        if (compTickets(mTicket, sharedMemoryPointer->competitorTicket) == 1) {
+            sharedMemoryPointer->competitorTicket = mTicket;
+        }
         char ticketString[100];
         ticketToString(ticketString, mTicket);
         printf("%sPidiendo acceso para %s\n", processTag, ticketString);
         replyPendingRequests(mTicket);
         sendRequests(mTicket, totalNodes);
         printf("%sEsperando replies...\n", processTag);
-        for (int i = 0; i < totalNodes; ++i) {
+        for (int i = 1; i < totalNodes; ++i) {
             receiveReply(mTicket);
-            printf("Recibido %d reply", i);
+            printf("Recibido %d reply\n", i + 1);
             if (compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
+                char aux[200], aux2[2];
+                ticketToString(aux, sharedMemoryPointer->competitorTicket);
+                ticketToString(aux2, mTicket);
+                printf("%s %s\n", aux, aux2);
                 wakeNextInLine();
                 sem_post(&sharedMemoryPointer->nodeStatusSem);
                 continue;
