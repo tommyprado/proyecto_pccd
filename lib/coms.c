@@ -49,11 +49,12 @@ void sendReply (ticket ticket, int originID){
     }
 }
 
-void receiveReply(ticket ticket) {
+int receiveReply(ticket ticket) {
     int msqid = getNodeReplyMsqid(ticket.nodeID);
     long type = getMsgType(ticket);
     ticketMessage message;
     msgrcv(msqid, &message, sizeof(message) - sizeof(long), type, 0);
+    return message.origin;
 }
 
 long getMsgType(ticket ticket) {
