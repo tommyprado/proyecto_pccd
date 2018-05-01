@@ -15,6 +15,11 @@
 
 #define LAUNCHER_TAG "LAUNCHER> "
 
+#define DOC_PAGOS "pagos.dat"
+#define DOC_ANULACIONES "anulaciones.dat"
+#define DOC_PRERESERVAS "prereservas.dat"
+
+
 void printArgumentError();
 
 FILE * getFile(int argc, char *argv[]) ;
@@ -42,12 +47,15 @@ long long int dameTiempoSeccionCritica();
 
 long long int primerInstanteSC(char line[200]);
 
-
+void imprimeMensajeAFichero();
 
 
 int main(int argc, char *argv[]) {
     system("ipcrm --all && killall Process && killall Receptor");
     system("rm pagos.dat");
+    system("rm anulaciones.dat");
+    system("rm prereservas.dat");
+
 
     time_t actualTime = time(0);
     struct tm *tlocal1 = localtime(&actualTime);
@@ -72,16 +80,7 @@ int main(int argc, char *argv[]) {
     }
 
 
-    char *nombreFichero = "pagos.dat";
-
-    for (int j = 0; j < processCount * 2; ++j) {
-        launcherMessage message= recepcionCualquierMensaje();
-        if(message.mtype == TYPE_ACCESS_CS){
-            tipoAcceso( nombreFichero,  message);
-        }else if(message.mtype == TYPE_EXIT_CS){
-            tipoSalida( nombreFichero,  message);
-        }
-    }
+    imprimeMensajeAFichero();
 
     actualTime = time(0);
     struct tm *tlocal2 = localtime(&actualTime);
@@ -307,4 +306,43 @@ long long int primerInstanteSC(char line[LINE_LIMIT])
         }
     }
     return instante;
+}
+
+void imprimeMensajeAFichero() {
+    char *nombreFicheroPagos = DOC_PAGOS;
+    char *nombreFicheroAnulaciones = DOC_ANULACIONES;
+    char *nombreFicheroPrereservas = DOC_PRERESERVAS;
+
+
+    for (int j = 0; j < processCount * 2; ++j) {
+        launcherMessage message = recepcionCualquierMensaje();
+
+
+        if (message.ticket.priority == PAGOS) {//si es de tipo pagos
+            if (message.mtype == TYPE_ACCESS_CS) {
+                tipoAcceso(nombreFicheroPagos, message);
+            } else if (message.mtype == TYPE_EXIT_CS) {
+                tipoSalida(nombreFicheroPagos, message);
+            }
+        }
+        if (message.ticket.priority == ANULACIONES) {//si es de tipo anulaciones
+            if (message.mtype == TYPE_ACCESS_CS) {
+                tipoAcceso(nombreFicheroAnulaciones, message);
+            } else if (message.mtype == TYPE_EXIT_CS) {
+                tipoSalida(nombreFicheroAnulaciones, message);
+            }
+        }
+        if (message.ticket.priority == RESERVAS) {//si es de tipo prereservas
+            if (message.mtype == TYPE_ACCESS_CS) {
+                tipoAcceso(nombreFicheroPrereservas, message);
+            } else if (message.mtype == TYPE_EXIT_CS) {
+                tipoSalida(nombreFicheroPrereservas, message);
+            }
+        }
+        if (message.ticket.priority == 0) {//si es de tipo consultores
+            printf("aun no implementados los consultores");
+        }
+
+
+    }
 }

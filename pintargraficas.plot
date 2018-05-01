@@ -21,8 +21,8 @@ set key outside
 unset ytics
 
 plot "pagos.dat" title "pagos" with fillsteps fs solid 0.3 noborder lt rgb "green" , \
-"prereservas.dat" title "anulaciones" with fillsteps fs solid 0.3 noborder lt rgb "red" , \
-"anulaciones.dat" title "prereservas" with fillsteps fs solid 0.3 noborder lt rgb "blue"  , \
+"anulaciones.dat" title "anulaciones" with fillsteps fs solid 0.3 noborder lt rgb "red" , \
+"prereservas.dat" title "prereservas" with fillsteps fs solid 0.3 noborder lt rgb "blue"  , \
 
 set xlabel
 set ylabel
