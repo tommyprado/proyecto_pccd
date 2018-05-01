@@ -18,7 +18,7 @@
 #define DOC_PAGOS "pagos.dat"
 #define DOC_ANULACIONES "anulaciones.dat"
 #define DOC_PRERESERVAS "prereservas.dat"
-
+#define DOC_CONSULTORES "consultores.dat"
 
 void printArgumentError();
 
@@ -63,6 +63,7 @@ int main(int argc, char *argv[]) {
     system("rm pagos.dat");
     system("rm anulaciones.dat");
     system("rm prereservas.dat");
+    system("rm consultores.dat");
 
 
     time_t actualTime = time(0);
@@ -90,7 +91,7 @@ int main(int argc, char *argv[]) {
 
     imprimeMensajeAFichero();
 
-    textoTerminalFinEjecucion(  initTime, initTimeInSec);
+    textoTerminalFinEjecucion(initTime, initTimeInSec);
 
 
     long long int tiempoPrimeraSC = conseguirPrimerAccesoSC();
@@ -100,8 +101,10 @@ int main(int argc, char *argv[]) {
     long long int tiempoSCPagos = dameTiempoSeccionCritica(DOC_PAGOS);
     long long int tiempoSCAnulaciones = dameTiempoSeccionCritica(DOC_ANULACIONES);
     long long int tiempoSCPrereservas = dameTiempoSeccionCritica(DOC_PRERESERVAS);
+    long long int tiempoSCConsultores = dameTiempoSeccionCritica(DOC_CONSULTORES);
 
-    long long int tiempoTotalSC=tiempoSCPagos+tiempoSCAnulaciones+tiempoSCPrereservas;
+
+    long long int tiempoTotalSC=tiempoSCPagos+tiempoSCAnulaciones+tiempoSCPrereservas+tiempoSCConsultores;
 
 /* comprobacion tiempos
     printf("tiempo 1º sc %lli, SC pagos %lli, SC prereservas %lli, SC anulaciones %lli, SC total %lli \n",tiempoPrimeraSC,tiempoSCPagos,tiempoSCPrereservas,tiempoSCAnulaciones,tiempoTotalSC);
@@ -312,6 +315,7 @@ void imprimeMensajeAFichero() {
     char *nombreFicheroPagos = DOC_PAGOS;
     char *nombreFicheroAnulaciones = DOC_ANULACIONES;
     char *nombreFicheroPrereservas = DOC_PRERESERVAS;
+    char *nombreFicheroConsultores = DOC_CONSULTORES;
 
 
     for (int j = 0; j < processCount * 2; ++j) {
@@ -340,7 +344,11 @@ void imprimeMensajeAFichero() {
             }
         }
         if (message.ticket.priority == CONSULTORES) {//si es de tipo consultores
-            printf("aun no implementados los consultores");
+            if (message.mtype == TYPE_ACCESS_CS) {
+                tipoAcceso(nombreFicheroConsultores, message);
+            } else if (message.mtype == TYPE_EXIT_CS) {
+                tipoSalida(nombreFicheroConsultores, message);
+            }
         }
 
 
@@ -353,6 +361,8 @@ long long int conseguirPrimerAccesoSC(){
     long long int tiempoPrimeraSCPagos=0;
     long long int tiempoPrimeraSCAnulaciones=0;
     long long int tiempoPrimeraSCPrereservas=0;
+    long long int tiempoPrimeraSCConsultores=0;
+
 
     FILE *fp;
     fp = fopen(DOC_PAGOS, "r");
@@ -385,14 +395,26 @@ long long int conseguirPrimerAccesoSC(){
     }
     fclose(fp);
 
-    if(tiempoPrimeraSCPagos<=tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPagos<=tiempoPrimeraSCPrereservas){
+    fp = fopen(DOC_CONSULTORES, "r");
+    if (fp == NULL) {
+        perror("File error");
+        exit(1);
+    }
+    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+        tiempoPrimeraSCConsultores = primerInstanteSC(nextLine);
+    }
+    fclose(fp);
+
+    if(tiempoPrimeraSCPagos<=tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPagos<=tiempoPrimeraSCPrereservas && tiempoPrimeraSCPagos<=tiempoPrimeraSCConsultores){
         return tiempoPrimeraSCPagos;
     }
-    if(tiempoPrimeraSCAnulaciones<= tiempoPrimeraSCPagos && tiempoPrimeraSCAnulaciones<=tiempoPrimeraSCPrereservas){
+    else if(tiempoPrimeraSCAnulaciones<= tiempoPrimeraSCPagos && tiempoPrimeraSCAnulaciones<=tiempoPrimeraSCPrereservas && tiempoPrimeraSCAnulaciones<=tiempoPrimeraSCConsultores){
         return tiempoPrimeraSCAnulaciones;
     }
-    if(tiempoPrimeraSCPrereservas <= tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPrereservas<=tiempoPrimeraSCPagos){
+    else if(tiempoPrimeraSCPrereservas <= tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPrereservas<=tiempoPrimeraSCPagos && tiempoPrimeraSCPrereservas<=tiempoPrimeraSCConsultores){
         return tiempoPrimeraSCPrereservas;
+    }else {
+        return tiempoPrimeraSCConsultores;
     }
 
 }
@@ -403,6 +425,7 @@ long long int conseguirUltimaSalidaSC(){
     long long int tiempoUltimaSCPagos=0;
     long long int tiempoUltimaSCAnulaciones=0;
     long long int tiempoUltimaSCPrereservas=0;
+    long long int tiempoUltimaSCConsultores=0;
 
     FILE *fp;
     fp = fopen(DOC_PAGOS, "r");
@@ -438,16 +461,26 @@ long long int conseguirUltimaSalidaSC(){
     }
     fclose(fp);
 
+    fp = fopen(DOC_CONSULTORES, "r");
+    if (fp == NULL) {
+        perror("File error");
+        exit(1);
+    }
+    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+        tiempoUltimaSCConsultores = primerInstanteSC(nextLine);
+    }
+    fclose(fp);
 
-
-    if(tiempoUltimaSCPagos>=tiempoUltimaSCAnulaciones && tiempoUltimaSCPagos>=tiempoUltimaSCPrereservas){
+    if(tiempoUltimaSCPagos>=tiempoUltimaSCAnulaciones && tiempoUltimaSCPagos>=tiempoUltimaSCPrereservas && tiempoUltimaSCPagos>=tiempoUltimaSCConsultores){
         return tiempoUltimaSCPagos;
     }
-    if(tiempoUltimaSCAnulaciones>= tiempoUltimaSCPagos && tiempoUltimaSCAnulaciones>=tiempoUltimaSCPrereservas){
+    else if(tiempoUltimaSCAnulaciones>= tiempoUltimaSCPagos && tiempoUltimaSCAnulaciones>=tiempoUltimaSCPrereservas && tiempoUltimaSCAnulaciones>=tiempoUltimaSCConsultores){
         return tiempoUltimaSCAnulaciones;
     }
-    if(tiempoUltimaSCPrereservas >= tiempoUltimaSCAnulaciones && tiempoUltimaSCPrereservas>=tiempoUltimaSCPagos){
+    else if(tiempoUltimaSCPrereservas >= tiempoUltimaSCAnulaciones && tiempoUltimaSCPrereservas>=tiempoUltimaSCPagos && tiempoUltimaSCPrereservas>=tiempoUltimaSCConsultores){
         return tiempoUltimaSCPrereservas;
+    }else {
+        return tiempoUltimaSCConsultores;
     }
 
 }
