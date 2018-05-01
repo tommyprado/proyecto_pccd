@@ -109,6 +109,10 @@ int main(int argc, char *argv[]) {
 
     long long int tiempoTotalSC=tiempoSCPagos+tiempoSCAnulaciones+tiempoSCPrereservas;
 
+    printf("tiempo 1º sc %lli, SC pagos %lli, SC prereservas %lli, SC anulaciones %lli, SC total %lli \n",tiempoPrimeraSC,tiempoSCPagos,tiempoSCPrereservas,tiempoSCAnulaciones,tiempoTotalSC);
+    printf("tiempo fin %lli, diferencia entre 1ºsc y fin %lli\n",endTimeInSec,endTimeInSec-tiempoPrimeraSC);
+
+
     escribirTiempos(endTimeInSec - tiempoPrimeraSC, tiempoTotalSC);
     pintar();
 
@@ -200,24 +204,18 @@ void printArgumentError() {
     printf("Wrong argument number.\nUsage: ./launcher ./path/to/config/file");
 }
 
-
 void pintar(){
 
     system("gnuplot -persist ../pintargraficas.plot");
 
 }
 
-long long int duracionEjecucion(long long int tiempoInicio){
-    return getTimestamp()-tiempoInicio;
-}
-
-
 void escribirTiempos(long long int tiempoTotal, long long int tiempoSeccionCritica){
     long long int  tiempoNoSeccionCritica=tiempoTotal-tiempoSeccionCritica;
     float pTiempoNoSeccionCritica = (float)tiempoNoSeccionCritica / tiempoTotal;
     float pTiempoSeccionCritica=(float)tiempoSeccionCritica/tiempoTotal;
 
-    printf("pTiempoNoSeccionCritica %f  pTiempoSeccionCritica %f tiempoTotal %lli tiempoSeccionCritica %lli\n", pTiempoNoSeccionCritica, pTiempoSeccionCritica, tiempoTotal, tiempoSeccionCritica);
+    //printf("pTiempoNoSeccionCritica %f  pTiempoSeccionCritica %f tiempoTotal %lli tiempoSeccionCritica %lli\n", pTiempoNoSeccionCritica, pTiempoSeccionCritica, tiempoTotal, tiempoSeccionCritica);
 
 
     FILE * fileSC = fopen("porcentajeSCtotal.dat", "w");
@@ -354,8 +352,6 @@ long long int conseguirPrimerAccesoSC(){
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoPrimeraSCPagos = primerInstanteSC(nextLine);
-
-        printf("el primer instante de seccion critica es : %lli \n", tiempoPrimeraSCPagos);
     }
     fclose(fp);
 
@@ -366,8 +362,6 @@ long long int conseguirPrimerAccesoSC(){
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoPrimeraSCAnulaciones= primerInstanteSC(nextLine);
-
-        printf("el primer instante de seccion critica es : %lli \n", tiempoPrimeraSCAnulaciones);
     }
     fclose(fp);
 
@@ -378,18 +372,16 @@ long long int conseguirPrimerAccesoSC(){
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoPrimeraSCPrereservas = primerInstanteSC(nextLine);
-
-        printf("el primer instante de seccion critica es : %lli \n", tiempoPrimeraSCPrereservas);
     }
     fclose(fp);
 
-    if(tiempoPrimeraSCPagos>=tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPagos>=tiempoPrimeraSCPrereservas){
+    if(tiempoPrimeraSCPagos<=tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPagos<=tiempoPrimeraSCPrereservas){
         return tiempoPrimeraSCPagos;
     }
-    if(tiempoPrimeraSCAnulaciones>= tiempoPrimeraSCPagos && tiempoPrimeraSCAnulaciones>=tiempoPrimeraSCPrereservas){
+    if(tiempoPrimeraSCAnulaciones<= tiempoPrimeraSCPagos && tiempoPrimeraSCAnulaciones<=tiempoPrimeraSCPrereservas){
         return tiempoPrimeraSCAnulaciones;
     }
-    if(tiempoPrimeraSCPrereservas >= tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPrereservas>=tiempoPrimeraSCPagos){
+    if(tiempoPrimeraSCPrereservas <= tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPrereservas<=tiempoPrimeraSCPagos){
         return tiempoPrimeraSCPrereservas;
     }
 
