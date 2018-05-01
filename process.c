@@ -73,10 +73,6 @@ int main(int argc, char *argv[]){
             sem_wait(&sharedMemoryPointer->nodeStatusSem);
             printf("%sRecibido %d reply\n", processTag, i + 1);
             if (compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
-                char aux[200], aux2[2];
-                ticketToString(aux, sharedMemoryPointer->competitorTicket);
-                ticketToString(aux2, mTicket);
-                printf("%s %s\n", aux, aux2);
                 wakeNextInLine();
                 sem_post(&sharedMemoryPointer->nodeStatusSem);
                 continue;
