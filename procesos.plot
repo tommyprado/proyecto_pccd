@@ -9,7 +9,8 @@ set style data histogram
 # Give the bars a plain fill pattern, and draw a solid line around them.
 set style fill solid border
 
-
+unset ytics
+unset xtics
 
 set title "ACCESOS A LA SECCION CRITICA"
 set xlabel 'instante de tiempo T'
