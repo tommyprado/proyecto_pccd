@@ -51,6 +51,10 @@ void imprimeMensajeAFichero();
 
 long long int conseguirPrimerAccesoSC();
 
+long long int conseguirUltimaSalidaSC();
+
+void textoTerminalFinEjecucion( char *initTime,long long int initTimeInSec);
+
 
 int main(int argc, char *argv[]) {
     system("ipcrm --all && killall Process && killall Receptor");
@@ -84,23 +88,11 @@ int main(int argc, char *argv[]) {
 
     imprimeMensajeAFichero();
 
-    actualTime = time(0);
-    struct tm *tlocal2 = localtime(&actualTime);
-    char endTime[128];
-    strftime(endTime, 128, "%d/%m/%y %H:%M:%S", tlocal2);
-    long long int endTimeInSec = getTimestamp();
-
-    printf("Tiempo de inicio: %s. Tiempo de finalización: %s. Han transcurrido %lli microsegundos.\n", initTime,
-           endTime, endTimeInSec - initTimeInSec);
-    printf("Se han ejecutado %i procesos en total\n", processCount);
-    printf("Todos los procesos pasaron por sección crítica\n");
-
-
-    //printf("%lli tiempo total seccion critica pagos\n", dameTiempoSeccionCritica());
-    printf("%lli tiempo total\n", endTimeInSec - initTimeInSec);
+    textoTerminalFinEjecucion(  initTime, initTimeInSec);
 
 
     long long int tiempoPrimeraSC = conseguirPrimerAccesoSC();
+    long long int tiempoUltimaSC = conseguirUltimaSalidaSC();
 
 
     long long int tiempoSCPagos = dameTiempoSeccionCritica(DOC_PAGOS);
@@ -109,11 +101,12 @@ int main(int argc, char *argv[]) {
 
     long long int tiempoTotalSC=tiempoSCPagos+tiempoSCAnulaciones+tiempoSCPrereservas;
 
+/* comprobacion tiempos
     printf("tiempo 1º sc %lli, SC pagos %lli, SC prereservas %lli, SC anulaciones %lli, SC total %lli \n",tiempoPrimeraSC,tiempoSCPagos,tiempoSCPrereservas,tiempoSCAnulaciones,tiempoTotalSC);
-    printf("tiempo fin %lli, diferencia entre 1ºsc y fin %lli\n",endTimeInSec,endTimeInSec-tiempoPrimeraSC);
+    printf("ultima SC %lli, diferencia entre 1ºsc y ultima %lli\n",tiempoUltimaSC,tiempoUltimaSC-tiempoPrimeraSC);
+*/
 
-
-    escribirTiempos(endTimeInSec - tiempoPrimeraSC, tiempoTotalSC);
+    escribirTiempos(tiempoUltimaSC - tiempoPrimeraSC, tiempoTotalSC);
     pintar();
 
 }
@@ -329,7 +322,7 @@ void imprimeMensajeAFichero() {
                 tipoSalida(nombreFicheroPrereservas, message);
             }
         }
-        if (message.ticket.priority == 0) {//si es de tipo consultores
+        if (message.ticket.priority == CONSULTORES) {//si es de tipo consultores
             printf("aun no implementados los consultores");
         }
 
@@ -385,4 +378,73 @@ long long int conseguirPrimerAccesoSC(){
         return tiempoPrimeraSCPrereservas;
     }
 
+}
+
+long long int conseguirUltimaSalidaSC(){
+    //esto para conseguir el primer instante de acceso a la SC
+    char nextLine[LINE_LIMIT];
+    long long int tiempoUltimaSCPagos=0;
+    long long int tiempoUltimaSCAnulaciones=0;
+    long long int tiempoUltimaSCPrereservas=0;
+
+    FILE *fp;
+    fp = fopen(DOC_PAGOS, "r");
+    if (fp == NULL) {
+        fputs("File error", stderr);
+        exit(1);
+    }
+    while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+        tiempoUltimaSCPagos = primerInstanteSC(nextLine);
+    }
+    fclose(fp);
+
+
+
+    fp = fopen(DOC_ANULACIONES, "r");
+    if (fp == NULL) {
+        fputs("File error", stderr);
+        exit(1);
+    }
+    while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+        tiempoUltimaSCAnulaciones = primerInstanteSC(nextLine);
+    }
+    fclose(fp);
+
+
+    fp = fopen(DOC_PRERESERVAS, "r");
+    if (fp == NULL) {
+        fputs("File error", stderr);
+        exit(1);
+    }
+    while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+        tiempoUltimaSCPrereservas = primerInstanteSC(nextLine);
+    }
+    fclose(fp);
+
+
+
+    if(tiempoUltimaSCPagos>=tiempoUltimaSCAnulaciones && tiempoUltimaSCPagos>=tiempoUltimaSCPrereservas){
+        return tiempoUltimaSCPagos;
+    }
+    if(tiempoUltimaSCAnulaciones>= tiempoUltimaSCPagos && tiempoUltimaSCAnulaciones>=tiempoUltimaSCPrereservas){
+        return tiempoUltimaSCAnulaciones;
+    }
+    if(tiempoUltimaSCPrereservas >= tiempoUltimaSCAnulaciones && tiempoUltimaSCPrereservas>=tiempoUltimaSCPagos){
+        return tiempoUltimaSCPrereservas;
+    }
+
+}
+
+void textoTerminalFinEjecucion( char *initTime,long long int initTimeInSec){
+    time_t actualTime = time(0);
+    struct tm *tlocal2 = localtime(&actualTime);
+    char endTime[128];
+    strftime(endTime, 128, "%d/%m/%y %H:%M:%S", tlocal2);
+    long long int endTimeInSec = getTimestamp();
+    printf("_____________________________________________________________\n");
+    printf("Tiempo de inicio: %s. Tiempo de finalización: %s. Han transcurrido %lli microsegundos.\n", initTime,
+           endTime, endTimeInSec - initTimeInSec);
+    printf("Se han ejecutado %i procesos en total\n", processCount);
+    printf("Todos los procesos pasaron por sección crítica\n");
+    printf("_____________________________________________________________\n");
 }
