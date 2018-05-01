@@ -56,6 +56,8 @@ long long int conseguirUltimaSalidaSC();
 void textoTerminalFinEjecucion( char *initTime,long long int initTimeInSec);
 
 
+void escribirTiemposProcesos(long long int pagos, long long int anulaciones, long long int prereservas);
+
 int main(int argc, char *argv[]) {
     system("ipcrm --all && killall Process && killall Receptor");
     system("rm pagos.dat");
@@ -107,9 +109,12 @@ int main(int argc, char *argv[]) {
 */
 
     escribirTiempos(tiempoUltimaSC - tiempoPrimeraSC, tiempoTotalSC);
+    escribirTiemposProcesos(tiempoSCPagos,tiempoSCAnulaciones,tiempoSCPrereservas);
+
     pintar();
 
 }
+
 
 void processLine(char line[LINE_LIMIT]) {
     char *found;
@@ -199,7 +204,12 @@ void printArgumentError() {
 
 void pintar(){
 
-    system("gnuplot -persist ../pintargraficas.plot");
+    system("gnuplot -persist ../procesos.plot");
+
+    system("gnuplot -persist ../porcentajeSC.plot");
+
+    system("gnuplot -persist ../scPorProceso.plot");
+
 
 }
 
@@ -214,6 +224,14 @@ void escribirTiempos(long long int tiempoTotal, long long int tiempoSeccionCriti
     FILE * fileSC = fopen("porcentajeSCtotal.dat", "w");
     fprintf(fileSC, "ejecucion NoSC SC\n");
     fprintf(fileSC, "1 %f %f\n", pTiempoNoSeccionCritica, pTiempoSeccionCritica);
+    fclose(fileSC);
+
+}
+
+void escribirTiemposProcesos(long long int pagos, long long int anulaciones, long long int prereservas) {
+    FILE * fileSC = fopen("scPorProceso.dat", "w");
+    fprintf(fileSC, "Pagos Anulaciones Prereservas\n");
+    fprintf(fileSC, "%lli %lli %lli\n", pagos, anulaciones,prereservas);
     fclose(fileSC);
 
 }
@@ -448,3 +466,4 @@ void textoTerminalFinEjecucion( char *initTime,long long int initTimeInSec){
     printf("Todos los procesos pasaron por sección crítica\n");
     printf("_____________________________________________________________\n");
 }
+
