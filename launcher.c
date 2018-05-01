@@ -43,7 +43,7 @@ void escribirTiempos(long long int tiempoInicio, long long int tiempoFin);
 
 void tiempoSeccionCritica(char line[200], long long int *instanteAux, int *scAux, long long int *tiempoSC);
 
-long long int dameTiempoSeccionCritica();
+long long int dameTiempoSeccionCritica(char *documento);
 
 long long int primerInstanteSC(char line[200]);
 
@@ -96,14 +96,18 @@ int main(int argc, char *argv[]) {
     printf("Todos los procesos pasaron por sección crítica\n");
 
 
-    printf("%lli tiempo total seccion critica pagos\n", dameTiempoSeccionCritica());
+    //printf("%lli tiempo total seccion critica pagos\n", dameTiempoSeccionCritica());
     printf("%lli tiempo total\n", endTimeInSec - initTimeInSec);
 
 
     long long int tiempoPrimeraSC = conseguirPrimerAccesoSC();
 
 
-    long long int tiempoTotalSC = dameTiempoSeccionCritica();
+    long long int tiempoSCPagos = dameTiempoSeccionCritica(DOC_PAGOS);
+    long long int tiempoSCAnulaciones = dameTiempoSeccionCritica(DOC_ANULACIONES);
+    long long int tiempoSCPrereservas = dameTiempoSeccionCritica(DOC_PRERESERVAS);
+
+    long long int tiempoTotalSC=tiempoSCPagos+tiempoSCAnulaciones+tiempoSCPrereservas;
 
     escribirTiempos(endTimeInSec - tiempoPrimeraSC, tiempoTotalSC);
     pintar();
@@ -223,9 +227,8 @@ void escribirTiempos(long long int tiempoTotal, long long int tiempoSeccionCriti
 
 }
 
-long long int dameTiempoSeccionCritica(){
+long long int dameTiempoSeccionCritica(char *documento){
 
-    /*esto donde carallo lo declaro ! */
     long long int tiempoSC=0;
     long long int instanteAux=0;
     int scAux=0;
@@ -233,7 +236,7 @@ long long int dameTiempoSeccionCritica(){
     int contadorLineas=0;
 
     FILE *fp;
-    fp = fopen ( "pagos.dat" , "r" );
+    fp = fopen ( documento , "r" );
     if (fp==NULL) {fputs ("File error",stderr); exit (1);}
     while (1){
         if((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
@@ -243,10 +246,7 @@ long long int dameTiempoSeccionCritica(){
             break;
         }
     }
-
     fclose ( fp );
-
-
 
     return tiempoSC;
 }
