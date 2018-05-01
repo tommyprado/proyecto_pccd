@@ -11,20 +11,21 @@ set style data histogram
 set style fill solid border
 
 
+set xtics auto rotate
 
-set border 3
 set title "ACCESOS A LA SECCION CRITICA"
 set xlabel 'instante de tiempo T'
 set ylabel 'sección critica'
 set autoscale
-set key bottom right
+set key outside
 unset ytics
 
 plot "pagos.dat" title "pagos" with fillsteps fs solid 0.3 noborder lt rgb "green" , \
 "prereservas.dat" title "anulaciones" with fillsteps fs solid 0.3 noborder lt rgb "red" , \
 "anulaciones.dat" title "prereservas" with fillsteps fs solid 0.3 noborder lt rgb "blue"  , \
 
-
+set xlabel
+set ylabel
 
 unset xtics
 set border 3
