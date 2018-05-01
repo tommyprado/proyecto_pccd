@@ -10,7 +10,7 @@ set style data histogram
 # Give the bars a plain fill pattern, and draw a solid line around them.
 set style fill solid border
 
-unset xtics
+
 
 set border 3
 set title "ACCESOS A LA SECCION CRITICA"

@@ -15,6 +15,10 @@
 
 #define LAUNCHER_TAG "LAUNCHER> "
 
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 void printArgumentError();
 
 FILE * getFile(int argc, char *argv[]) ;
@@ -38,6 +42,9 @@ void tiempoSeccionCritica(char line[200], long long int *instanteAux, int *scAux
 
 long long int dameTiempoSeccionCritica();
 
+long long int primerInstanteSC(char line[200]);
+
+
 
 
 int main(int argc, char *argv[]) {
@@ -47,14 +54,14 @@ int main(int argc, char *argv[]) {
     time_t actualTime = time(0);
     struct tm *tlocal1 = localtime(&actualTime);
     char initTime[128];
-    strftime(initTime,128,"%d/%m/%y %H:%M:%S",tlocal1);
+    strftime(initTime, 128, "%d/%m/%y %H:%M:%S", tlocal1);
     long long int initTimeInSec = getTimestamp();
 
     initMessageQueue();
     FILE *fp = getFile(argc, argv);
     char nextLine[LINE_LIMIT];
     while (1) {
-        if((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+        if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             if (strcmp(nextLine, "\n") != 0) {
                 processLine(nextLine);
             }
@@ -67,39 +74,56 @@ int main(int argc, char *argv[]) {
     }
 
 
+    char *nombreFichero = "pagos.dat";
 
-    char *nombreFichero="pagos.dat";
-
-    for (int j = 0; j < processCount ; ++j) {
-        launcherMessage message= recepcionCualquierMensaje();
-        if(message.mtype == TYPE_ACCESS_CS){
-            tipoAcceso( nombreFichero,  message);
-        }else if(message.mtype == TYPE_EXIT_CS){
-            tipoSalida( nombreFichero,  message);
+    for (int j = 0; j < processCount*2; ++j) {
+        launcherMessage message = recepcionCualquierMensaje();
+        if (message.mtype == TYPE_ACCESS_CS) {
+            tipoAcceso(nombreFichero, message);
+        } else if (message.mtype == TYPE_EXIT_CS) {
+            tipoSalida(nombreFichero, message);
         }
     }
 
     actualTime = time(0);
     struct tm *tlocal2 = localtime(&actualTime);
     char endTime[128];
-    strftime(endTime,128,"%d/%m/%y %H:%M:%S",tlocal2);
+    strftime(endTime, 128, "%d/%m/%y %H:%M:%S", tlocal2);
     long long int endTimeInSec = getTimestamp();
 
-    printf("Tiempo de inicio: %s. Tiempo de finalización: %s. Han transcurrido %lli microsegundos.\n",initTime, endTime, endTimeInSec-initTimeInSec);
+    printf("Tiempo de inicio: %s. Tiempo de finalización: %s. Han transcurrido %lli microsegundos.\n", initTime,
+           endTime, endTimeInSec - initTimeInSec);
     printf("Se han ejecutado %i procesos en total\n", processCount);
     printf("Todos los procesos pasaron por sección crítica\n");
 
 
     printf("%lli tiempo total seccion critica pagos\n", dameTiempoSeccionCritica());
-    printf("%lli tiempo total\n",endTimeInSec-initTimeInSec);
+    printf("%lli tiempo total\n", endTimeInSec - initTimeInSec);
 
-    escribirTiempos(endTimeInSec-initTimeInSec,dameTiempoSeccionCritica());
+    //esto para conseguir el primer instante de acceso a la SC
+    fp = fopen("pagos.dat", "r");
+    if (fp == NULL) {
+        fputs("File error", stderr);
+        exit(1);
+    }
+    long long int tiempoPrimeraSC=0;
+    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+        tiempoPrimeraSC = primerInstanteSC(nextLine);
+
+        printf("el primer instante de seccion critica es : %lli \n", tiempoPrimeraSC);
+    }
+    fclose(fp);
+
+    long long int tiempoTotalSC = dameTiempoSeccionCritica();
+
+    escribirTiempos(endTimeInSec - tiempoPrimeraSC, tiempoTotalSC);
+
+    printf(ANSI_COLOR_MAGENTA "\ttiempos!!\n endTimeInSec: %lli\n tiempoPrimeraSC: %lli\n diferencia: %lli\n tiempoTotalSC: %lli" ANSI_COLOR_RESET "\n",endTimeInSec,tiempoPrimeraSC,endTimeInSec-tiempoPrimeraSC,tiempoTotalSC);
+
 
     pintar();
 
     fclose(fp);// esto que carallo pinta aqui ??
-
-    return 0;
 }
 
 void processLine(char line[LINE_LIMIT]) {
@@ -188,6 +212,10 @@ void escribirTiempos(long long int tiempoTotal, long long int tiempoSeccionCriti
     long long int  tiempoNoSeccionCritica=tiempoTotal-tiempoSeccionCritica;
     float pTiempoNoSeccionCritica = (float)tiempoNoSeccionCritica / tiempoTotal;
     float pTiempoSeccionCritica=(float)tiempoSeccionCritica/tiempoTotal;
+
+    printf("pTiempoNoSeccionCritica %f  pTiempoSeccionCritica %f tiempoTotal %lli tiempoSeccionCritica %lli\n", pTiempoNoSeccionCritica, pTiempoSeccionCritica, tiempoTotal, tiempoSeccionCritica);
+
+
     FILE * fileSC = fopen("porcentajeSCtotal.dat", "w");
     fprintf(fileSC, "ejecucion NoSC SC\n");
     fprintf(fileSC, "1 %f %f\n", pTiempoNoSeccionCritica, pTiempoSeccionCritica);
@@ -217,6 +245,8 @@ long long int dameTiempoSeccionCritica(){
     }
 
     fclose ( fp );
+
+
 
     return tiempoSC;
 }
@@ -249,4 +279,23 @@ void tiempoSeccionCritica(char line[200], long long int *instanteAux, int *scAux
     }
     *instanteAux=instante;
     *scAux=sc;
+}
+
+long long int primerInstanteSC(char line[LINE_LIMIT])
+{
+    long long int instante = 0;
+    char *found;
+    char split[20][20];
+    int cont = 0;
+    while( (found = strsep(&line," \n")) != NULL ) {
+        if (strcmp(found,"") != 0) {
+            strcpy(split[cont], found);
+
+            if(cont==0){
+                instante = atoll(split[cont]);
+            }
+            cont++;
+        }
+    }
+    return instante;
 }

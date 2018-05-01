@@ -13,7 +13,7 @@
 
 #define PENDING_REQUESTS_LIMIT 1000000
 
-#define SC_WAIT 500
+#define SC_WAIT 1
 
 void initNode(int argc, char *argv[]);
 
