@@ -57,7 +57,7 @@ int main(int argc, char *argv[]){
             addProcessToCount(sharedMemoryPointer, priority);
         }
         else if (&sharedMemoryPointer->inSC || priority >= sharedMemoryPointer->competitorTicket.priority) {
-            printf("%sPrioridad %d ya en juego, esperando...\n", processTag, priority);
+            //printf("%sPrioridad %d ya en juego, esperando...\n", processTag, priority);
             addProcessToCount(sharedMemoryPointer, priority);
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             waitByPriority(sharedMemoryPointer, priority);
@@ -68,6 +68,9 @@ int main(int argc, char *argv[]){
 
         ticketToString(ticketString1, mTicket);
         printf("%sPidiendo acceso para %s\n", processTag, ticketString1);
+        char aux3[100];
+        ticketToString(aux3, sharedMemoryPointer->competitorTicket);
+        printf("Competiremos con el ticket %s \n", aux3);
         replyPendingRequests(mTicket);
         sendRequests(mTicket, totalNodes);
         printf("%sEsperando replies...\n", processTag);

@@ -441,10 +441,10 @@ void textoTerminalFinEjecucion( char *initTime,long long int initTimeInSec){
     char endTime[128];
     strftime(endTime, 128, "%d/%m/%y %H:%M:%S", tlocal2);
     long long int endTimeInSec = getTimestamp();
-    printf("_____________________________________________________________\n");
+    printf("_______________________________________________________________________________________________________________________________________________________________________________________\n\n");
     printf("Tiempo de inicio: %s. Tiempo de finalización: %s. Han transcurrido %lli microsegundos.\n", initTime,
            endTime, endTimeInSec - initTimeInSec);
     printf("Se han ejecutado %i procesos en total\n", processCount);
     printf("Todos los procesos pasaron por sección crítica\n");
-    printf("_____________________________________________________________\n");
+    printf("_______________________________________________________________________________________________________________________________________________________________________________________\n");
 }

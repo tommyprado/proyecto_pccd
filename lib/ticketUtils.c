@@ -1,6 +1,6 @@
 #include "../headers/ticketUtils.h"
 #include <stdio.h>
-
+                //Mi ticket     //CompetitorTicket
 int compTickets(ticket ticket1, ticket ticket2) {
     if (ticket1.priority > ticket2.priority) {
         return 1;
