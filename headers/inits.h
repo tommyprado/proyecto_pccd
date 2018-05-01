@@ -16,6 +16,7 @@ typedef struct {
 
     int pendingRequestsCount;
     ticket pendingRequests[PENDING_REQUESTS_LIMIT];
+    bool inSC;
 } sharedMemory;
 
 void initMailBoxes(int nodeID);

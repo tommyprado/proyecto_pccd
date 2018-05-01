@@ -87,12 +87,14 @@ int main(int argc, char *argv[]){
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             continue;
         }
+        sharedMemoryPointer->inSC = true;
         sem_post(&sharedMemoryPointer->nodeStatusSem);
         break;
     }
 
     accessCS(sharedMemoryPointer->competitorTicket);
     sem_wait(&sharedMemoryPointer->nodeStatusSem);
+    sharedMemoryPointer->inSC = false;
     removeProcessFromCount(sharedMemoryPointer, priority);
     if (nodeHasProcesses(sharedMemoryPointer)){
         wakeNextInLine();

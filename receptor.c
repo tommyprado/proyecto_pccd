@@ -31,7 +31,7 @@ int main(int argc, char *argv[]){
         char ticketString[100];
         ticketToString(ticketString, originTicket);
         if(!nodeHasProcesses(sharedMemoryPointer) ||
-           (nodeHasProcesses(sharedMemoryPointer) && (compTickets(originTicket, sharedMemoryPointer->competitorTicket) == -1))) { // competitorTicket > originTicket?
+           (!sharedMemoryPointer->inSC && (compTickets(originTicket, sharedMemoryPointer->competitorTicket) == -1))) { // competitorTicket > originTicket?
 //            printf("%sEnviando reply %s\n", receptorTag, ticketString);
             sendReply(originTicket, nodeID);
             sharedMemoryPointer->competitorTicket.priority = NONE;
