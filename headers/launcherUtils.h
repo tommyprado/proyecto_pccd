@@ -10,6 +10,19 @@
 #define TYPE_PROCESS_FINISHED 6
 #define LAUNCHER_QUEUE 283300
 
+#define DOC_PAGOS "pagos.dat"
+#define DOC_ANULACIONES "anulaciones.dat"
+#define DOC_PRERESERVAS "prereservas.dat"
+#define DOC_CONSULTORES "consultores.dat"
+
+typedef struct gnuPlotStruct {
+    long long int enterTime;
+    long long int exitTime;
+    int pid;
+    int priority;
+    struct gnuPlotStruct *next;
+} gnuPlotEntry;
+
 void sndTicketToLauncher(int type, ticket ticket);
 
 void sndMsgToLauncher(int type);
@@ -25,9 +38,6 @@ void getMsgOut(int type);
 
 launcherMessage recepcionCualquierMensaje();
 
-void tipoAcceso(char *nombreFichero, launcherMessage message);
-
-void tipoSalida(char *nombreFichero, launcherMessage message);
-
+void writeEntry(gnuPlotEntry *entry);
 
 #endif //PROYECTO_OUT_H

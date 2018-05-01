@@ -35,19 +35,29 @@ launcherMessage recepcionCualquierMensaje() {
     launcherMessage message;
     int msqid = getMsqid(LAUNCHER_QUEUE);
     msgrcv(msqid, &message, sizeof(message) - sizeof(long), 0, 0);
-
     return message;
 }
 
-void tipoAcceso(char *nombreFichero, launcherMessage message){
+void writeEntry(gnuPlotEntry *entry){
+    char *nombreFichero = NULL;
+    switch (entry->priority) {
+        case PAGOS:
+            nombreFichero = DOC_PAGOS;
+            break;
+        case ANULACIONES:
+            nombreFichero = DOC_ANULACIONES;
+            break;
+        case RESERVAS:
+            nombreFichero = DOC_PRERESERVAS;
+            break;
+        case CONSULTORES:
+            nombreFichero = DOC_CONSULTORES;
+            break;
+        default:break;
+    }
     FILE * fileSC = fopen(nombreFichero, "a");
-    fprintf(fileSC, "%lli 1 %i\n", message.t,message.ticket.pid);
-    fclose(fileSC);
-}
-
-void tipoSalida(char *nombreFichero, launcherMessage message){
-    FILE * fileSC = fopen(nombreFichero, "a");
-    fprintf(fileSC, "%lli 0 %i\n", message.t,message.ticket.pid);
+    fprintf(fileSC, "%lli 1 %i\n", entry->enterTime, entry->pid);
+    fprintf(fileSC, "%lli 0 %i\n", entry->exitTime, entry->pid);
     fclose(fileSC);
 }
 

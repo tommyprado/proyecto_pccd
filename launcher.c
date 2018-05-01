@@ -15,11 +15,6 @@
 
 #define LAUNCHER_TAG "LAUNCHER> "
 
-#define DOC_PAGOS "pagos.dat"
-#define DOC_ANULACIONES "anulaciones.dat"
-#define DOC_PRERESERVAS "prereservas.dat"
-#define DOC_CONSULTORES "consultores.dat"
-
 void printArgumentError();
 
 FILE * getFile(int argc, char *argv[]) ;
@@ -32,8 +27,8 @@ int getPriority(char *string);
 
 void execProcess(int priority, int node, int nodeCount) ;
 
-void pintar();
 
+void pintar();
 
 int nodeCount = 0;
 
@@ -53,10 +48,14 @@ long long int conseguirPrimerAccesoSC();
 
 long long int conseguirUltimaSalidaSC();
 
+
 void textoTerminalFinEjecucion( char *initTime,long long int initTimeInSec);
 
-
 void escribirTiemposProcesos(long long int pagos, long long int anulaciones, long long int prereservas);
+
+gnuPlotEntry *createPlotEntry(launcherMessage message) ;
+
+gnuPlotEntry *searchGnuEntry(gnuPlotEntry *pStruct, int pid) ;
 
 int main(int argc, char *argv[]) {
     system("ipcrm --all && killall Process && killall Receptor");
@@ -310,47 +309,72 @@ long long int primerInstanteSC(char line[LINE_LIMIT])
 }
 
 void imprimeMensajeAFichero() {
-    char *nombreFicheroPagos = DOC_PAGOS;
-    char *nombreFicheroAnulaciones = DOC_ANULACIONES;
-    char *nombreFicheroPrereservas = DOC_PRERESERVAS;
-    char *nombreFicheroConsultores = DOC_CONSULTORES;
-
+    gnuPlotEntry *entryFirst = NULL;
+    gnuPlotEntry *entryLatest = NULL;
 
     for (int j = 0; j < processCount * 2; ++j) {
         launcherMessage message = recepcionCualquierMensaje();
 
-
-        if (message.ticket.priority == PAGOS) {//si es de tipo pagos
-            if (message.mtype == TYPE_ACCESS_CS) {
-                tipoAcceso(nombreFicheroPagos, message);
-            } else if (message.mtype == TYPE_EXIT_CS) {
-                tipoSalida(nombreFicheroPagos, message);
+        if (entryFirst == NULL) {
+            entryFirst = createPlotEntry(message);
+            printf("Creado %i\n", entryFirst->pid);
+            entryLatest = entryFirst;
+        } else {
+            gnuPlotEntry *entry = searchGnuEntry(entryFirst, message.ticket.pid);
+            if (entry == NULL) {
+                entry = createPlotEntry(message);
+                printf("Creado %i\n", entry->pid);
+                entryLatest->next = entry;
+                entryLatest = entry;
+            } else {
+                printf("Actualizado %i\n", entry->pid);
+                switch (message.mtype) {
+                    case TYPE_ACCESS_CS:
+                        entry->enterTime = message.t;
+                        break;
+                    case TYPE_EXIT_CS:
+                        entry->exitTime = message.t;
+                        break;
+                    default:break;
+                }
             }
         }
-        if (message.ticket.priority == ANULACIONES) {//si es de tipo anulaciones
-            if (message.mtype == TYPE_ACCESS_CS) {
-                tipoAcceso(nombreFicheroAnulaciones, message);
-            } else if (message.mtype == TYPE_EXIT_CS) {
-                tipoSalida(nombreFicheroAnulaciones, message);
-            }
-        }
-        if (message.ticket.priority == RESERVAS) {//si es de tipo prereservas
-            if (message.mtype == TYPE_ACCESS_CS) {
-                tipoAcceso(nombreFicheroPrereservas, message);
-            } else if (message.mtype == TYPE_EXIT_CS) {
-                tipoSalida(nombreFicheroPrereservas, message);
-            }
-        }
-        if (message.ticket.priority == CONSULTORES) {//si es de tipo consultores
-            if (message.mtype == TYPE_ACCESS_CS) {
-                tipoAcceso(nombreFicheroConsultores, message);
-            } else if (message.mtype == TYPE_EXIT_CS) {
-                tipoSalida(nombreFicheroConsultores, message);
-            }
-        }
-
-
     }
+    gnuPlotEntry *cursor = entryFirst;
+    while (cursor != NULL) {
+        writeEntry(cursor);
+        cursor = cursor->next;
+    }
+}
+
+gnuPlotEntry *searchGnuEntry(gnuPlotEntry *firstEntry, int pid) {
+    gnuPlotEntry *cursor = firstEntry;
+    while (cursor != NULL) {
+        if (cursor->pid == pid) {
+            return cursor;
+        } else {
+            cursor = cursor->next;
+        }
+    }
+    return NULL;
+}
+
+gnuPlotEntry *createPlotEntry(launcherMessage message) {
+    gnuPlotEntry *entry;
+    entry = malloc(sizeof(gnuPlotEntry));
+    entry->priority = message.ticket.priority;
+    entry->pid = message.ticket.pid;
+    entry->next = NULL;
+    switch (message.mtype) {
+        case TYPE_ACCESS_CS:
+            entry->enterTime = message.t;
+            break;
+        case TYPE_EXIT_CS:
+            entry->exitTime = message.t;
+            break;
+        default:break;
+    }
+    return entry;
 }
 
 long long int conseguirPrimerAccesoSC(){
