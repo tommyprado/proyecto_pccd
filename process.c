@@ -42,7 +42,7 @@ int totalNodes, nodeID, pid, priority;
 
 char processTag[100];
 
-char stringTicket[10];
+char stringTicket[100];
 
 bool reset = false;
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]){
             addProcessToCount(sharedMemoryPointer, priority);
         }
         else if (&sharedMemoryPointer->inSC || priority >= sharedMemoryPointer->competitorTicket.priority) {
-            printf("%sPrioridad %d ya en juego, esperando...\n", processTag, priority);
+            printf("%sPrioridad %d con pid %d ya en juego, esperando...\n", processTag, priority, getpid());
             addProcessToCount(sharedMemoryPointer, priority);
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             waitByPriority(sharedMemoryPointer, priority);
@@ -83,20 +83,20 @@ int main(int argc, char *argv[]){
                 ticketToString(ticketString1, mTicket);
                 ticketToString(ticketString2, message.ticket);
                 printf("%sReply %s ya no válida para %s\n", processTag, ticketString2, ticketString1);
-                continue;
+            } else {
+                printf("%sRecibido el reply número %d del nodo %i para %s\n", processTag, replyCont + 1, message.origin, ticketString1);
+                if (compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
+                    char aux[200], aux2[2];
+                    ticketToString(aux, sharedMemoryPointer->competitorTicket);
+                    ticketToString(aux2, message.ticket);
+                    printf("%sTicket %s sustituido por %s\n",processTag, aux2, aux);
+                    removeProcessFromCount(sharedMemoryPointer, priority);
+                    reset = true;
+                    wakeNextInLine();
+                    break;
+                }
+                replyCont++;
             }
-            printf("%sRecibido el reply número %d del nodo %i\n", processTag, replyCont, message.origin);
-            if (compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
-                char aux[200], aux2[2];
-                ticketToString(aux, sharedMemoryPointer->competitorTicket);
-                ticketToString(aux2, mTicket);
-                printf("%sReset debido a %s en %s\n",processTag, aux, aux2);
-                wakeNextInLine();
-                removeProcessFromCount(sharedMemoryPointer, priority);
-                reset = true;
-                break;
-            }
-            replyCont++;
         }
         if (reset) {
             ticketToString(ticketString1, mTicket);
