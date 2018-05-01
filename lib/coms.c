@@ -5,9 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define REQUEST_ID_MULTIPLIER 1000000
-
-#define NODE_ID_MULTIPLIER 10
+#define REQUEST_ID_MULTIPLIER 100
 
 long getMsgType(ticket ticket) ;
 
@@ -59,7 +57,7 @@ void receiveReply(ticket ticket) {
 }
 
 long getMsgType(ticket ticket) {
-    return ticket.requestID * REQUEST_ID_MULTIPLIER + ticket.nodeID * NODE_ID_MULTIPLIER + ticket.priority;
+    return ticket.requestID * REQUEST_ID_MULTIPLIER + ticket.nodeID;
 }
 
 int getNodeReplyMsqid(int nodeID) {

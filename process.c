@@ -12,7 +12,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-#define SC_WAIT 500
+#define SC_WAIT 1
 
 void initNode(int argc, char *argv[]);
 
@@ -32,6 +32,8 @@ void replyPendingRequests(ticket mTicket) ;
 
 void replyAll();
 
+void resetCompetitor(sharedMemory *pointer);
+
 sharedMemory *sharedMemoryPointer;
 
 int totalNodes, nodeID, pid, priority;
@@ -42,10 +44,11 @@ char stringTicket[10];
 
 int main(int argc, char *argv[]){
     initNode(argc, argv);
-
+    char ticketString1[100];
+    char ticketString2[100];
     while (1) {
-        bool reset = false;
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
+        bool reset = false;
         if (!nodeHasProcesses(sharedMemoryPointer)) {
             addProcessToCount(sharedMemoryPointer, priority);
             printf("%sNodo vacío, entrando con prioridad %d\n", processTag, priority);
@@ -59,11 +62,16 @@ int main(int argc, char *argv[]){
         }
         ticket mTicket = createTicket();
         if (compTickets(mTicket, sharedMemoryPointer->competitorTicket) == -1) {
+            ticketToString(ticketString1, sharedMemoryPointer->competitorTicket);
+            ticketToString(ticketString2, mTicket);
+            if (sharedMemoryPointer->competitorTicket.priority != NONE) {
+                printf("%sSustituyendo %s por %s\n", processTag, ticketString1, ticketString2);
+            }
             sharedMemoryPointer->competitorTicket = mTicket;
         }
-        char ticketString[100];
-        ticketToString(ticketString, mTicket);
-        printf("%sPidiendo acceso para %s\n", processTag, ticketString);
+
+        ticketToString(ticketString1, mTicket);
+        printf("%sPidiendo acceso para %s\n", processTag, ticketString1);
         replyPendingRequests(mTicket);
         sendRequests(mTicket, totalNodes);
         printf("%sEsperando replies...\n", processTag);
@@ -77,13 +85,16 @@ int main(int argc, char *argv[]){
                 ticketToString(aux, sharedMemoryPointer->competitorTicket);
                 ticketToString(aux2, mTicket);
                 printf("%sReset debido a %s en %s\n",processTag, aux, aux2);
-                wakeNextInLine();
+                if (!sharedMemoryPointer->inSC) {
+                    wakeNextInLine();
+                }
                 removeProcessFromCount(sharedMemoryPointer, priority);
                 reset = true;
                 break;
             }
         }
         if (reset) {
+            resetCompetitor(sharedMemoryPointer);
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             continue;
         }
@@ -96,10 +107,8 @@ int main(int argc, char *argv[]){
     sem_wait(&sharedMemoryPointer->nodeStatusSem);
     sharedMemoryPointer->inSC = false;
     removeProcessFromCount(sharedMemoryPointer, priority);
+    resetCompetitor(sharedMemoryPointer);
     if (nodeHasProcesses(sharedMemoryPointer)){
-        ticket ticket;
-        ticket.priority = NONE;
-        sharedMemoryPointer->competitorTicket = ticket;
         wakeNextInLine();
     } else {
         replyAll();
@@ -107,6 +116,12 @@ int main(int argc, char *argv[]){
     sem_post(&sharedMemoryPointer->nodeStatusSem);
 
     sndMsgToLauncher(TYPE_PROCESS_FINISHED);
+}
+
+void resetCompetitor(sharedMemory *sharedMemoryPointer) {
+    ticket ticket;
+    ticket.priority = NONE;
+    sharedMemoryPointer->competitorTicket = ticket;
 }
 
 void replyAll() {
