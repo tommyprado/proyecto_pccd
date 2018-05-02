@@ -1,4 +1,10 @@
 # 1
-+ 1 Pag 150
-- 1000
-+ 1 Pag 150
+
+% No se debería notar el delay
++ 1 Pag 15
+- 100
++ 1 Pag 15
+
+% Se debería notar del delay
+- 500
++ 1 Pag 15

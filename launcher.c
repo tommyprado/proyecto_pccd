@@ -208,9 +208,9 @@ void printArgumentError() {
 }
 
 void pintar(){
-    system("gnuplot -persist ../scPorProcesoTiempoTotal.plot");
-    system("gnuplot -persist ../scPorProceso.plot");
-    system("gnuplot -persist ../porcentajeSC.plot");
+//    system("gnuplot -persist ../scPorProcesoTiempoTotal.plot");
+//    system("gnuplot -persist ../scPorProceso.plot");
+//    system("gnuplot -persist ../porcentajeSC.plot");
     system("gnuplot -persist ../procesos.plot");
 }
 

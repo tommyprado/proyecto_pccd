@@ -1,8 +1,9 @@
 # 1
-+ 1 Pag 150
-+ 1 Res 150
-+ 1 Anu 150
-- 1000
-+ 1 Pag 150
-+ 1 Res 150
-+ 1 Anu 150
+
+% Debería aparecer primero algunas reservas, luego algunas anulaciones
+% y después pagos, anulaciones y reservas
++ 1 Res 15
+- 20
++ 1 Anu 15
+- 20
++ 1 Pag 15
