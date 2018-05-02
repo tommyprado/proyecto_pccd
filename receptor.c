@@ -37,8 +37,7 @@ int main(int argc, char *argv[]){
             sendReply(originTicket, nodeID);
             sharedMemoryPointer->competitorTicket.priority = NONE;
         }
-        else if (originTicket.priority == CONSULTORES &&
-                 sharedMemoryPointer->competitorTicket.priority == CONSULTORES) {
+        else if (sharedMemoryPointer->consultorsInSC > 0) {
             sendReply(originTicket, nodeID);
         }
         else{

@@ -22,4 +22,4 @@ unset ytics
 plot "pagos.dat" title "pagos" with fillsteps fs solid 0.3 noborder lt rgb "green" , \
 "anulaciones.dat" title "anulaciones" with fillsteps fs solid 0.3 noborder lt rgb "red" , \
 "prereservas.dat" title "prereservas" with fillsteps fs solid 0.3 noborder lt rgb "blue"  , \
-"consultores.dat" title "consultores" with fillsteps fs solid 0.3 noborder lt rgb "brown"  , \
+"consultores.dat" title "consultores" with fillsteps fs solid 0.3 noborder lt rgb "yellow"  , \

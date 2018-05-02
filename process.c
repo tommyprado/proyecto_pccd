@@ -59,6 +59,9 @@ int main(int argc, char *argv[]){
 
             addProcessToCount(sharedMemoryPointer, priority);
         }
+        else if (priority == CONSULTORES && sharedMemoryPointer->consultorsInSC > 0) {
+            printf("%sProcesos consultores en SC. Entrando...\n", processTag);
+        }
         else if (&sharedMemoryPointer->inSC || priority >= sharedMemoryPointer->competitorTicket.priority) {
             printf("%sPrioridad %d con pid %d ya en juego, esperando...\n", processTag, priority, getpid());
             addProcessToCount(sharedMemoryPointer, priority);
@@ -67,8 +70,7 @@ int main(int argc, char *argv[]){
             sem_wait(&sharedMemoryPointer->nodeStatusSem);
         }
         mTicket = createTicket();
-        if (priority == CONSULTORES && sharedMemoryPointer->concurrentConsultCount > 1) {
-            sem_post(&sharedMemoryPointer->nodeStatusSem);
+        if (priority == CONSULTORES && sharedMemoryPointer->consultorsInSC > 0) {
             break;
         }
         sharedMemoryPointer->competitorTicket = mTicket;
@@ -110,22 +112,24 @@ int main(int argc, char *argv[]){
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             continue;
         }
-        if(sharedMemoryPointer->competitorTicket.priority == CONSULTORES) {
+        if(priority == CONSULTORES) {
             replyPendingRequestsConsult();
         }
         sharedMemoryPointer->inSC = true;
-        sem_post(&sharedMemoryPointer->nodeStatusSem);
         break;
     }
     if(priority == CONSULTORES){
-        sharedMemoryPointer->concurrentConsultCount=sharedMemoryPointer->concurrentConsultCount--;
-        if(sharedMemoryPointer->concurrentConsultCount > 0){
+        sharedMemoryPointer->consultorsInSC = sharedMemoryPointer->consultorsInSC + 1;
+        sharedMemoryPointer->pendingConsultors = sharedMemoryPointer->pendingConsultors - 1;
+        if(sharedMemoryPointer->pendingConsultors > 0){
             sem_post(&sharedMemoryPointer->nextConsultoresSem);
         }
     }
+    sem_post(&sharedMemoryPointer->nodeStatusSem);
     accessCS(mTicket);
     sem_wait(&sharedMemoryPointer->nodeStatusSem);
     if (priority == CONSULTORES && sharedMemoryPointer->nextConsultoresCount > 1) {
+        sharedMemoryPointer->consultorsInSC = sharedMemoryPointer->consultorsInSC - 1;
         removeProcessFromCount(sharedMemoryPointer, priority);
     } else if (priority != CONSULTORES || (priority == CONSULTORES && sharedMemoryPointer->nextConsultoresCount == 1)) {
         sharedMemoryPointer->inSC = false;

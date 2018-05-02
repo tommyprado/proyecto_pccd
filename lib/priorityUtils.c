@@ -49,7 +49,7 @@ void addProcessToCount(sharedMemory *sharedMemoryPointer, int priority) {
             break;
         case CONSULTORES:
             sharedMemoryPointer->nextConsultoresCount = sharedMemoryPointer->nextConsultoresCount + 1;
-            sharedMemoryPointer->concurrentConsultCount=sharedMemoryPointer->concurrentConsultCount +1;
+            sharedMemoryPointer->pendingConsultors=sharedMemoryPointer->pendingConsultors + 1;
             break;
         default:
             printf("Prioridad %d no soportada (addProcessToCount)\n", priority);

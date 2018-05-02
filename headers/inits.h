@@ -10,13 +10,14 @@ typedef struct {
     int maxRequestID;
     sem_t nodeStatusSem;
     ticket competitorTicket;
-    int concurrentConsultCount;
+    int pendingConsultors;
     int nextPagosCount, nextAnulacionesCount, nextReservasCount, nextConsultoresCount;
     sem_t nextPagosSem, nextAnulacionesSem, nextReservasSem, nextConsultoresSem;
 
     int pendingRequestsCount;
     ticket pendingRequests[PENDING_REQUESTS_LIMIT];
     bool inSC;
+    int consultorsInSC;
 } sharedMemory;
 
 void initMailBoxes(int nodeID);
