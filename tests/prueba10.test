@@ -6,6 +6,10 @@
 + 2 Con 10      % Los consultores no deben entrar
 - 50
 + 3 Anu 5       % Debe cortar las reservas
-- 50
-+ 2 Pag 10
+
+- 200
 + 4 Con 10
+- 5
++ 2 Anu 10
+- 30
++ 3 Pag 10
