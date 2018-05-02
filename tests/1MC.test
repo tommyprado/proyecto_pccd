@@ -1,8 +1,8 @@
-# 1
-+ 1 Con 150
-- 100
-+ 1 Pag 150
-- 1000
-+ 1 Pag 150
-- 100
-+ 1 Con 150
+# 2
+
+% Entran 15 consultores. En medio de su tiempo de SC, entra un pagos con más consultores.
+% Deberían pasar todos los consultores antes que el Pagos (inanición)
++ 1 Con 15
+- 5
++ 1 Pag 2
++ 1 Con 15

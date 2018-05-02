@@ -1,8 +1,18 @@
-# 1
-+ 1 Con 150
+# 2
+
+% Entran 15 consultores. En medio de su tiempo de SC, entra un pagos con más consultores.
+% Deberían pasar todos los consultores antes que el Pagos (inanición)
++ 1 Con 15
+- 5
++ 1 Res 3
++ 1 Pag 2
++ 1 Con 15
+
+% Tras un delay, entran anulaciones. Tras otro pequeño delay, entran Consultores y luego Pagos.
+% Deberían salir Consultores de último.
 - 100
-+ 1 Pag 150
-- 1000
-+ 1 Pag 150
-- 100
-+ 1 Con 150
++ 1 Anu 10
+- 20
++ 1 Con 10
+- 20
++ 1 Pag 10
