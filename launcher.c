@@ -255,17 +255,19 @@ long long int dameTiempoSeccionCritica(char *documento){
 
     FILE *fp;
     fp = fopen ( documento , "r" );
-    if (fp==NULL) {perror ("File error"); exit (1);}
-    while (1){
-        if((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-            contadorLineas++;
-            tiempoSeccionCritica(nextLine, &instanteAux, &scAux,&tiempoSC);
-        } else {
-            break;
+    if (fp==NULL) {
+        perror ("File error");
+    } else {
+        while (1){
+            if((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+                contadorLineas++;
+                tiempoSeccionCritica(nextLine, &instanteAux, &scAux,&tiempoSC);
+            } else {
+                break;
+            }
         }
+        fclose ( fp );
     }
-    fclose ( fp );
-
     return tiempoSC;
 }
 
@@ -400,39 +402,43 @@ long long int conseguirPrimerAccesoSC(){
     fp = fopen(DOC_PAGOS, "r");
     if (fp == NULL) {
         perror("File error 1");
+    } else {
+        if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+            tiempoPrimeraSCPagos = primerInstanteSC(nextLine);
+        }
+        fclose(fp);
     }
-    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-        tiempoPrimeraSCPagos = primerInstanteSC(nextLine);
-    }
-    fclose(fp);
 
     fp = fopen(DOC_ANULACIONES, "r");
     if (fp == NULL) {
         perror("File error 2");
+    } else {
+        if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+            tiempoPrimeraSCAnulaciones= primerInstanteSC(nextLine);
+        }
+        fclose(fp);
     }
-    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-        tiempoPrimeraSCAnulaciones= primerInstanteSC(nextLine);
-    }
-    fclose(fp);
 
     fp = fopen(DOC_PRERESERVAS, "r");
     if (fp == NULL) {
         perror("File error 3");
+    } else {
+        if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+            tiempoPrimeraSCPrereservas = primerInstanteSC(nextLine);
+        }
+        fclose(fp);
     }
-    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-        tiempoPrimeraSCPrereservas = primerInstanteSC(nextLine);
-    }
-    fclose(fp);
 
     fp = fopen(DOC_CONSULTORES, "r");
     if (fp == NULL) {
         perror("File error 4");
-    }
-    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-        tiempoPrimeraSCConsultores = primerInstanteSC(nextLine);
+    } else {
+        if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+            tiempoPrimeraSCConsultores = primerInstanteSC(nextLine);
 
+        }
+        fclose(fp);
     }
-    fclose(fp);
 
     if(tiempoPrimeraSCPagos<=tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPagos<=tiempoPrimeraSCPrereservas && tiempoPrimeraSCPagos<=tiempoPrimeraSCConsultores){
         return tiempoPrimeraSCPagos;
@@ -461,43 +467,44 @@ long long int conseguirUltimaSalidaSC(){
     if (fp == NULL) {
         perror("File error 5");
         exit(1);
+    } else {
+        while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+            tiempoUltimaSCPagos = primerInstanteSC(nextLine);
+        }
+        fclose(fp);
     }
-    while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-        tiempoUltimaSCPagos = primerInstanteSC(nextLine);
-    }
-    fclose(fp);
-
-
 
     fp = fopen(DOC_ANULACIONES, "r");
     if (fp == NULL) {
         perror("File error 6");
-    }
-    while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-        tiempoUltimaSCAnulaciones = primerInstanteSC(nextLine);
+    } else {
+        while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+            tiempoUltimaSCAnulaciones = primerInstanteSC(nextLine);
 
+        }
+        fclose(fp);
     }
-    fclose(fp);
-
 
     fp = fopen(DOC_PRERESERVAS, "r");
     if (fp == NULL) {
         perror("File error 7");
-    }
-    while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-        tiempoUltimaSCPrereservas = primerInstanteSC(nextLine);
+    } else {
+        while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+            tiempoUltimaSCPrereservas = primerInstanteSC(nextLine);
 
+        }
+        fclose(fp);
     }
-    fclose(fp);
 
     fp = fopen(DOC_CONSULTORES, "r");
     if (fp == NULL) {
         perror("File error 8");
+    } else {
+        while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+            tiempoUltimaSCConsultores = primerInstanteSC(nextLine);
+        }
+        fclose(fp);
     }
-    while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
-        tiempoUltimaSCConsultores = primerInstanteSC(nextLine);
-    }
-    fclose(fp);
 
     if(tiempoUltimaSCPagos>=tiempoUltimaSCAnulaciones && tiempoUltimaSCPagos>=tiempoUltimaSCPrereservas && tiempoUltimaSCPagos>=tiempoUltimaSCConsultores){
         return tiempoUltimaSCPagos;
