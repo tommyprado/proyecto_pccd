@@ -123,7 +123,7 @@ int main(int argc, char *argv[]){
             sem_post(&sharedMemoryPointer->nextConsultoresSem);
         }
     }
-    accessCS(sharedMemoryPointer->competitorTicket);
+    accessCS(mTicket);
     sem_wait(&sharedMemoryPointer->nodeStatusSem);
     if (priority == CONSULTORES && sharedMemoryPointer->nextConsultoresCount > 1) {
         removeProcessFromCount(sharedMemoryPointer, priority);
@@ -226,7 +226,7 @@ ticket createTicket() {
 
 void accessCS (ticket ticket){
     sndTicketToLauncher(TYPE_ACCESS_CS, ticket);
-    ticketToString(stringTicket, sharedMemoryPointer->competitorTicket);
+    ticketToString(stringTicket, ticket);
     printf("%sEn sección crítica con ticket %s\n", processTag, stringTicket);
     usleep(SC_WAIT * 1000);
     printf("%sSaliendo de sección crítica con ticket %s\n", processTag, stringTicket);
