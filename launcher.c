@@ -36,6 +36,10 @@ int processCount = 0;
 
 void escribirTiempos(long long int tiempoInicio, long long int tiempoFin);
 
+void escribirTiemposProcesos(long long int pagos, long long int anulaciones, long long int prereservas, long long int consultores);
+
+
+
 void tiempoSeccionCritica(char line[200], long long int *instanteAux, int *scAux, long long int *tiempoSC);
 
 long long int dameTiempoSeccionCritica(char *documento);
@@ -51,7 +55,10 @@ long long int conseguirUltimaSalidaSC();
 
 void textoTerminalFinEjecucion( char *initTime,long long int initTimeInSec);
 
-void escribirTiemposProcesos(long long int pagos, long long int anulaciones, long long int prereservas);
+void escribirTiemposProcesos(long long int pagos, long long int anulaciones, long long int prereservas, long long int consultores);
+
+void escribirTiemposProcesosTiempoTotal(long long int pagos, long long int anulaciones, long long int prereservas,long long int consultores,long long int total);
+
 
 gnuPlotEntry *createPlotEntry(launcherMessage message) ;
 
@@ -63,6 +70,9 @@ int main(int argc, char *argv[]) {
     system("rm anulaciones.dat");
     system("rm prereservas.dat");
     system("rm consultores.dat");
+    system("rm scPorProceso.dat");
+    system("rm scPorProcesoTiempoTotal.dat");
+
 
 
     time_t actualTime = time(0);
@@ -101,7 +111,7 @@ int main(int argc, char *argv[]) {
     long long int tiempoSCConsultores = dameTiempoSeccionCritica(DOC_CONSULTORES);
 
 
-    long long int tiempoTotalSC=tiempoSCPagos+tiempoSCAnulaciones+tiempoSCPrereservas+tiempoSCConsultores;
+    long long int tiempoTotalSC=tiempoSCPagos+tiempoSCAnulaciones+tiempoSCPrereservas;
 
 
     printf("tiempo 1º sc %lli, SC pagos %lli, SC prereservas %lli, SC anulaciones %lli, SC consultores %lli, SC total %lli \n",tiempoPrimeraSC,tiempoSCPagos,tiempoSCPrereservas,tiempoSCAnulaciones,tiempoSCConsultores,tiempoTotalSC);
@@ -109,8 +119,8 @@ int main(int argc, char *argv[]) {
 
 
     escribirTiempos(tiempoUltimaSC - tiempoPrimeraSC, tiempoTotalSC);
-    escribirTiemposProcesos(tiempoSCPagos,tiempoSCAnulaciones,tiempoSCPrereservas);
-
+    escribirTiemposProcesos(tiempoSCPagos,tiempoSCAnulaciones,tiempoSCPrereservas,tiempoUltimaSC-tiempoPrimeraSC-tiempoTotalSC);
+    escribirTiemposProcesosTiempoTotal(tiempoSCPagos,tiempoSCAnulaciones,tiempoSCPrereservas,tiempoSCConsultores,tiempoUltimaSC-tiempoPrimeraSC);
     pintar();
 
 }
@@ -203,13 +213,10 @@ void printArgumentError() {
 }
 
 void pintar(){
-
-    system("gnuplot -persist ../procesos.plot");
-
-    system("gnuplot -persist ../porcentajeSC.plot");
-
+    system("gnuplot -persist ../scPorProcesoTiempoTotal.plot");
     system("gnuplot -persist ../scPorProceso.plot");
-
+    system("gnuplot -persist ../porcentajeSC.plot");
+    system("gnuplot -persist ../procesos.plot");
 }
 
 void escribirTiempos(long long int tiempoTotal, long long int tiempoSeccionCritica){
@@ -221,16 +228,24 @@ void escribirTiempos(long long int tiempoTotal, long long int tiempoSeccionCriti
 
 
     FILE * fileSC = fopen("porcentajeSCtotal.dat", "w");
-    fprintf(fileSC, "ejecucion NoSC SC\n");
+    fprintf(fileSC, "ejecucion NoSC+Consultores SC\n");
     fprintf(fileSC, "1 %f %f\n", pTiempoNoSeccionCritica, pTiempoSeccionCritica);
     fclose(fileSC);
 
 }
 
-void escribirTiemposProcesos(long long int pagos, long long int anulaciones, long long int prereservas) {
+
+void escribirTiemposProcesos(long long int pagos, long long int anulaciones, long long int prereservas, long long int consultores) {
     FILE * fileSC = fopen("scPorProceso.dat", "w");
-    fprintf(fileSC, "Pagos Anulaciones Prereservas\n");
-    fprintf(fileSC, "%lli %lli %lli\n", pagos, anulaciones,prereservas);
+    fprintf(fileSC, "Pagos Anulaciones Prereservas \"Consultores* (estimado)\"\n");
+    fprintf(fileSC, "%lli %lli %lli %lli\n", pagos, anulaciones,prereservas,consultores);
+    fclose(fileSC);
+
+}
+void escribirTiemposProcesosTiempoTotal(long long int pagos, long long int anulaciones, long long int prereservas, long long int consultores, long long int total) {
+    FILE * fileSC = fopen("scPorProcesoTiempoTotal.dat", "w");
+    fprintf(fileSC, "Pagos Anulaciones Prereservas \"Acumulado Consultores*\" \"Tiempo total desde el primer acceso a SC\"\n");
+    fprintf(fileSC, "%lli %lli %lli %lli %lli\n", pagos, anulaciones,prereservas,consultores,total);
     fclose(fileSC);
 
 }
@@ -317,17 +332,14 @@ void imprimeMensajeAFichero() {
 
         if (entryFirst == NULL) {
             entryFirst = createPlotEntry(message);
-            printf("Creado %i\n", entryFirst->pid);
             entryLatest = entryFirst;
         } else {
             gnuPlotEntry *entry = searchGnuEntry(entryFirst, message.ticket.pid);
             if (entry == NULL) {
                 entry = createPlotEntry(message);
-                printf("Creado %i\n", entry->pid);
                 entryLatest->next = entry;
                 entryLatest = entry;
             } else {
-                printf("Actualizado %i\n", entry->pid);
                 switch (message.mtype) {
                     case TYPE_ACCESS_CS:
                         entry->enterTime = message.t;
@@ -420,6 +432,7 @@ long long int conseguirPrimerAccesoSC(){
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoPrimeraSCConsultores = primerInstanteSC(nextLine);
+
     }
     fclose(fp);
 
@@ -431,7 +444,7 @@ long long int conseguirPrimerAccesoSC(){
     }
     else if(tiempoPrimeraSCPrereservas <= tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPrereservas<=tiempoPrimeraSCPagos && tiempoPrimeraSCPrereservas<=tiempoPrimeraSCConsultores){
         return tiempoPrimeraSCPrereservas;
-    }else {
+    }else if(tiempoPrimeraSCConsultores <= tiempoPrimeraSCAnulaciones && tiempoPrimeraSCConsultores<=tiempoPrimeraSCPagos && tiempoPrimeraSCConsultores<=tiempoPrimeraSCPrereservas) {
         return tiempoPrimeraSCConsultores;
     }
 
@@ -464,6 +477,7 @@ long long int conseguirUltimaSalidaSC(){
     }
     while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoUltimaSCAnulaciones = primerInstanteSC(nextLine);
+
     }
     fclose(fp);
 
@@ -474,6 +488,7 @@ long long int conseguirUltimaSalidaSC(){
     }
     while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoUltimaSCPrereservas = primerInstanteSC(nextLine);
+
     }
     fclose(fp);
 
@@ -481,7 +496,7 @@ long long int conseguirUltimaSalidaSC(){
     if (fp == NULL) {
         perror("File error 8");
     }
-    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+    while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoUltimaSCConsultores = primerInstanteSC(nextLine);
     }
     fclose(fp);
@@ -494,7 +509,8 @@ long long int conseguirUltimaSalidaSC(){
     }
     else if(tiempoUltimaSCPrereservas >= tiempoUltimaSCAnulaciones && tiempoUltimaSCPrereservas>=tiempoUltimaSCPagos && tiempoUltimaSCPrereservas>=tiempoUltimaSCConsultores){
         return tiempoUltimaSCPrereservas;
-    }else {
+    }
+    else if(tiempoUltimaSCConsultores >= tiempoUltimaSCAnulaciones && tiempoUltimaSCConsultores>=tiempoUltimaSCPagos && tiempoUltimaSCConsultores>=tiempoUltimaSCPrereservas){
         return tiempoUltimaSCConsultores;
     }
 

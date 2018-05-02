@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+
 void sndMsgToLauncher(int type) {
     ticket ticket;
     sndTicketToLauncher(type, ticket);
