@@ -1,4 +1,6 @@
-# 1
-+ 1 Con 150
-- 1000
-+ 1 Con 150
+# 2
+
+% Debido a la concurrencia, un delay de 20 ms (menor que 10ms * 15 consultores) debería notarse
++ 1 Con 15
+- 20
++ 1 Con 15

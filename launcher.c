@@ -466,7 +466,6 @@ long long int conseguirUltimaSalidaSC(){
     fp = fopen(DOC_PAGOS, "r");
     if (fp == NULL) {
         perror("File error 5");
-        exit(1);
     } else {
         while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             tiempoUltimaSCPagos = primerInstanteSC(nextLine);
