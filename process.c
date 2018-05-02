@@ -87,7 +87,8 @@ int main(int argc, char *argv[]){
                 continue;
             }
             printf("%sRecibido el reply número %d del nodo %i para %s\n", processTag, replyCont + 1, message.origin, ticketString1);
-            if (compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
+            if ((priority == CONSULTORES && sharedMemoryPointer->competitorTicket.priority != CONSULTORES) ||
+                compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
                 char aux[200], aux2[2];
                 ticketToString(aux, sharedMemoryPointer->competitorTicket);
                 ticketToString(aux2, mTicket);
