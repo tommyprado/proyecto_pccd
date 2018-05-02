@@ -2,6 +2,10 @@ clear
 reset
 unset key
 
+# DESCOMENTAR PARA GRAFICAS DE MUCHOS PUNTOS !
+# reset
+#  set term png
+#  set output "data.png"
 
 # Make the x axis labels easier to read.
 # Select histogram data
@@ -19,7 +23,7 @@ set autoscale
 set key outside
 unset ytics
 
-plot "pagos.dat" title "pagos" with fillsteps fs solid 0.3 noborder lt rgb "green" , \
-"anulaciones.dat" title "anulaciones" with fillsteps fs solid 0.3 noborder lt rgb "red" , \
-"prereservas.dat" title "prereservas" with fillsteps fs solid 0.3 noborder lt rgb "blue"  , \
-"consultores.dat" title "consultores" with fillsteps fs solid 0.3 noborder lt rgb "yellow"  , \
+plot "pagos.dat" title "pagos" with fillsteps fs solid 0.3   , \
+"anulaciones.dat" title "anulaciones" with fillsteps fs solid 0.3   , \
+"prereservas.dat" title "prereservas" with fillsteps fs solid 0.3   , \
+"consultores.dat" title "consultores" with fillsteps fs solid 0.3   , \
