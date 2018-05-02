@@ -93,11 +93,6 @@ int main(int argc, char *argv[]) {
             break;
         }
     }
-    for (int i = 0; i < processCount; ++i) {
-        getMsgOut(TYPE_PROCESS_FINISHED);
-    }
-
-
     imprimeMensajeAFichero();
 
     textoTerminalFinEjecucion(initTime, initTimeInSec);

@@ -12,7 +12,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-#define SC_WAIT 50
+#define SC_WAIT 1
 
 void initNode(int argc, char *argv[]);
 
@@ -154,7 +154,6 @@ int main(int argc, char *argv[]){
         }
     }
     sem_post(&sharedMemoryPointer->nodeStatusSem);
-    sndMsgToLauncher(TYPE_PROCESS_FINISHED);
 }
 
 void resetCompetitor(sharedMemory *sharedMemoryPointer) {
