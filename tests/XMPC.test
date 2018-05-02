@@ -1,0 +1,11 @@
+# 5
+
++ 1 Res 15      % Entran una serie de reservas
+- 40
++ 5 Anu 2       % Estos anulaciones deben cortar a las reservas
++ 2 Con 10      % Los consultores no deben entrar
+- 50
++ 3 Anu 5       % Debe cortar las reservas
+- 50
++ 2 Pag 10
++ 4 Con 10

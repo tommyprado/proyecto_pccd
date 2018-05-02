@@ -1,0 +1,11 @@
+# 5
+
+% Quitando un primer posible periodo de balanceo en los primeros procesos, deberían entrar en SC ordenadamente
++ 1 Pag 10
++ 2 Res 10
++ 5 Anu 10
+
+% Además, añadimos más pagos en el momento en el que haya anulaciones en SC, teniendo los nuevos Pagos que adelantar
+% a las Anulaciones restantes.
+- 150
++ 4 Pag 5

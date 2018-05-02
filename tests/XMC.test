@@ -1,0 +1,17 @@
+# 5
+
+% Los pagos deberán acabar antes de que entre cualquier Consultor
++ 1 Pag 10
+- 5
++ 2 Con 10
++ 3 Pag 10
++ 4 Con 10
++ 5 Con 10
+
+% En caso de entrar un consultor antes que los Pagos, pasan todos los Consultores antes que los pagos
+- 300
++ 1 Con 10
++ 2 Con 10
+- 5
++ 3 Pag 10
++ 4 Pag 10
