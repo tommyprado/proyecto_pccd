@@ -15,6 +15,8 @@
 
 #define LAUNCHER_TAG "LAUNCHER> "
 
+#define SPLIT_LIMIT 1000
+
 void printArgumentError();
 
 FILE * getFile(int argc, char *argv[]) ;
@@ -123,7 +125,7 @@ int main(int argc, char *argv[]) {
 
 void processLine(char line[LINE_LIMIT]) {
     char *found;
-    char split[20][20];
+    char split[SPLIT_LIMIT][SPLIT_LIMIT];
     int cont = 0;
     while( (found = strsep(&line," \n")) != NULL ) {
         if (strcmp(found, "") != 0) {
@@ -256,7 +258,7 @@ long long int dameTiempoSeccionCritica(char *documento){
     FILE *fp;
     fp = fopen ( documento , "r" );
     if (fp==NULL) {
-        perror ("File error");
+        printf("Documento no existe\n");
     } else {
         while (1){
             if((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
@@ -276,7 +278,7 @@ void tiempoSeccionCritica(char line[200], long long int *instanteAux, int *scAux
     int sc = 0;
     long long int instante = 0;
     char *found;
-    char split[20][20];
+    char split[SPLIT_LIMIT][SPLIT_LIMIT];
     int cont = 0;
     while( (found = strsep(&line," \n")) != NULL ) {
         if (strcmp(found,"") != 0) {
@@ -305,7 +307,7 @@ long long int primerInstanteSC(char line[LINE_LIMIT])
 {
     long long int instante = 0;
     char *found;
-    char split[20][20];
+    char split[SPLIT_LIMIT][20];
     int cont = 0;
     while( (found = strsep(&line," \n")) != NULL ) {
         if (strcmp(found,"") != 0) {
@@ -401,7 +403,7 @@ long long int conseguirPrimerAccesoSC(){
     FILE *fp;
     fp = fopen(DOC_PAGOS, "r");
     if (fp == NULL) {
-        perror("File error 1");
+        printf("Pagos.dat no existe\n");
     } else {
         if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             tiempoPrimeraSCPagos = primerInstanteSC(nextLine);
@@ -411,7 +413,7 @@ long long int conseguirPrimerAccesoSC(){
 
     fp = fopen(DOC_ANULACIONES, "r");
     if (fp == NULL) {
-        perror("File error 2");
+        printf("Anulaciones.dat no existe\n");
     } else {
         if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             tiempoPrimeraSCAnulaciones= primerInstanteSC(nextLine);
@@ -421,7 +423,7 @@ long long int conseguirPrimerAccesoSC(){
 
     fp = fopen(DOC_PRERESERVAS, "r");
     if (fp == NULL) {
-        perror("File error 3");
+        printf("Prereservas.dat no existe\n");
     } else {
         if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             tiempoPrimeraSCPrereservas = primerInstanteSC(nextLine);
@@ -431,7 +433,7 @@ long long int conseguirPrimerAccesoSC(){
 
     fp = fopen(DOC_CONSULTORES, "r");
     if (fp == NULL) {
-        perror("File error 4");
+        printf("Consultores.dat no existe\n");
     } else {
         if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             tiempoPrimeraSCConsultores = primerInstanteSC(nextLine);
@@ -465,7 +467,7 @@ long long int conseguirUltimaSalidaSC(){
     FILE *fp;
     fp = fopen(DOC_PAGOS, "r");
     if (fp == NULL) {
-        perror("File error 5");
+        printf("Pagos.dat no existe\n");
     } else {
         while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             tiempoUltimaSCPagos = primerInstanteSC(nextLine);
@@ -475,7 +477,7 @@ long long int conseguirUltimaSalidaSC(){
 
     fp = fopen(DOC_ANULACIONES, "r");
     if (fp == NULL) {
-        perror("File error 6");
+        printf("Anulaciones.dat no existe\n");
     } else {
         while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             tiempoUltimaSCAnulaciones = primerInstanteSC(nextLine);
@@ -486,7 +488,7 @@ long long int conseguirUltimaSalidaSC(){
 
     fp = fopen(DOC_PRERESERVAS, "r");
     if (fp == NULL) {
-        perror("File error 7");
+        printf("Reservas.dat no existe\n");
     } else {
         while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             tiempoUltimaSCPrereservas = primerInstanteSC(nextLine);
@@ -497,7 +499,7 @@ long long int conseguirUltimaSalidaSC(){
 
     fp = fopen(DOC_CONSULTORES, "r");
     if (fp == NULL) {
-        perror("File error 8");
+        printf("Consultores.dat no existe\n");
     } else {
         while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
             tiempoUltimaSCConsultores = primerInstanteSC(nextLine);

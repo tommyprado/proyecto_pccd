@@ -1,0 +1,15 @@
+# 5
+
+% Una gran cantidad de consultores por nodo deberán ser menores que el delay debido a la concurrencia
++ 1 Con 10
++ 2 Con 10
++ 3 Con 10
++ 4 Con 10
++ 5 Con 10
+
+- 100
++ 1 Con 10
++ 2 Con 10
++ 3 Con 10
++ 4 Con 10
++ 5 Con 10
