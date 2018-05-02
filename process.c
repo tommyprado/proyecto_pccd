@@ -42,7 +42,7 @@ int totalNodes, nodeID, pid, priority;
 
 char processTag[100];
 
-char stringTicket[100];
+char mTicketString[100];
 
 bool reset = false;
 
@@ -61,6 +61,7 @@ int main(int argc, char *argv[]){
         }
         else if (priority == CONSULTORES && sharedMemoryPointer->consultorsInSC > 0) {
             printf("%sProcesos consultores en SC. Entrando...\n", processTag);
+            addProcessToCount(sharedMemoryPointer, priority);
         }
         else if (&sharedMemoryPointer->inSC || priority >= sharedMemoryPointer->competitorTicket.priority) {
             printf("%sPrioridad %d con pid %d ya en juego, esperando...\n", processTag, priority, getpid());
@@ -70,6 +71,7 @@ int main(int argc, char *argv[]){
             sem_wait(&sharedMemoryPointer->nodeStatusSem);
         }
         mTicket = createTicket();
+        ticketToString(mTicketString, mTicket);
         if (priority == CONSULTORES && sharedMemoryPointer->consultorsInSC > 0) {
             break;
         }
@@ -87,18 +89,16 @@ int main(int argc, char *argv[]){
             receiveReply(mTicket, &message);
             sem_wait(&sharedMemoryPointer->nodeStatusSem);
             if (compTickets(mTicket, message.ticket) != 0) {
-                ticketToString(ticketString1, mTicket);
                 ticketToString(ticketString2, message.ticket);
-                printf("%sReply %s ya no válida para %s\n", processTag, ticketString2, ticketString1);
+                printf("%sReply %s ya no válida para %s\n", processTag, ticketString2, mTicketString);
                 continue;
             }
             printf("%sRecibido el reply número %d del nodo %i para %s\n", processTag, replyCont + 1, message.origin, ticketString1);
             if ((priority == CONSULTORES && sharedMemoryPointer->competitorTicket.priority != CONSULTORES) ||
                 compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
-                char aux[200], aux2[2];
+                char aux[200];
                 ticketToString(aux, sharedMemoryPointer->competitorTicket);
-                ticketToString(aux2, mTicket);
-                printf("%sReset debido a %s en %s\n",processTag, aux, aux2);
+                printf("%sReset debido a %s en %s\n",processTag, aux, mTicketString);
                 wakeNextInLine();
                 removeProcessFromCount(sharedMemoryPointer, priority);
                 reset = true;
@@ -107,12 +107,12 @@ int main(int argc, char *argv[]){
             replyCont++;
         }
         if (reset) {
-            ticketToString(ticketString1, mTicket);
-            printf("%sReset para %s\n", processTag, ticketString1);
+            printf("%sReset para %s\n", processTag, mTicketString);
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             continue;
         }
         if(priority == CONSULTORES) {
+            printf("%sPrimer consultor ha entrado %s\n", processTag, mTicketString);
             replyPendingRequestsConsult();
         }
         sharedMemoryPointer->inSC = true;
@@ -128,10 +128,15 @@ int main(int argc, char *argv[]){
     sem_post(&sharedMemoryPointer->nodeStatusSem);
     accessCS(mTicket);
     sem_wait(&sharedMemoryPointer->nodeStatusSem);
-    if (priority == CONSULTORES && sharedMemoryPointer->nextConsultoresCount > 1) {
+    if (priority == CONSULTORES && sharedMemoryPointer->consultorsInSC > 1) {
         sharedMemoryPointer->consultorsInSC = sharedMemoryPointer->consultorsInSC - 1;
         removeProcessFromCount(sharedMemoryPointer, priority);
-    } else if (priority != CONSULTORES || (priority == CONSULTORES && sharedMemoryPointer->nextConsultoresCount == 1)) {
+        printf("%sConsultor %s saliendo. Quedan %d en SC\n", processTag, mTicketString, sharedMemoryPointer->consultorsInSC);
+    } else if (priority != CONSULTORES || (priority == CONSULTORES && sharedMemoryPointer->consultorsInSC == 1)) {
+        if (priority == CONSULTORES) {
+            printf("%sUltimo consultor ha salido %s\n", processTag, mTicketString);
+            sharedMemoryPointer->consultorsInSC = sharedMemoryPointer->consultorsInSC - 1;
+        }
         sharedMemoryPointer->inSC = false;
         removeProcessFromCount(sharedMemoryPointer, priority);
         resetCompetitor(sharedMemoryPointer);
@@ -230,10 +235,10 @@ ticket createTicket() {
 
 void accessCS (ticket ticket){
     sndTicketToLauncher(TYPE_ACCESS_CS, ticket);
-    ticketToString(stringTicket, ticket);
-    printf("%sEn sección crítica con ticket %s\n", processTag, stringTicket);
+    ticketToString(mTicketString, ticket);
+    printf("%sEn sección crítica con ticket %s\n", processTag, mTicketString);
     usleep(SC_WAIT * 1000);
-    printf("%sSaliendo de sección crítica con ticket %s\n", processTag, stringTicket);
+    printf("%sSaliendo de sección crítica con ticket %s\n", processTag, mTicketString);
     sndTicketToLauncher(TYPE_EXIT_CS, ticket);
 }
 
