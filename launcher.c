@@ -228,7 +228,7 @@ void escribirTiempos(long long int tiempoTotal, long long int tiempoSeccionCriti
 
 
     FILE * fileSC = fopen("porcentajeSCtotal.dat", "w");
-    fprintf(fileSC, "ejecucion NoSC SC\n");
+    fprintf(fileSC, "ejecucion NoSC+Consultores SC\n");
     fprintf(fileSC, "1 %f %f\n", pTiempoNoSeccionCritica, pTiempoSeccionCritica);
     fclose(fileSC);
 
@@ -332,17 +332,14 @@ void imprimeMensajeAFichero() {
 
         if (entryFirst == NULL) {
             entryFirst = createPlotEntry(message);
-            printf("Creado %i\n", entryFirst->pid);
             entryLatest = entryFirst;
         } else {
             gnuPlotEntry *entry = searchGnuEntry(entryFirst, message.ticket.pid);
             if (entry == NULL) {
                 entry = createPlotEntry(message);
-                printf("Creado %i\n", entry->pid);
                 entryLatest->next = entry;
                 entryLatest = entry;
             } else {
-                printf("Actualizado %i\n", entry->pid);
                 switch (message.mtype) {
                     case TYPE_ACCESS_CS:
                         entry->enterTime = message.t;
@@ -435,6 +432,7 @@ long long int conseguirPrimerAccesoSC(){
     }
     if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoPrimeraSCConsultores = primerInstanteSC(nextLine);
+
     }
     fclose(fp);
 
@@ -446,7 +444,7 @@ long long int conseguirPrimerAccesoSC(){
     }
     else if(tiempoPrimeraSCPrereservas <= tiempoPrimeraSCAnulaciones && tiempoPrimeraSCPrereservas<=tiempoPrimeraSCPagos && tiempoPrimeraSCPrereservas<=tiempoPrimeraSCConsultores){
         return tiempoPrimeraSCPrereservas;
-    }else {
+    }else if(tiempoPrimeraSCConsultores <= tiempoPrimeraSCAnulaciones && tiempoPrimeraSCConsultores<=tiempoPrimeraSCPagos && tiempoPrimeraSCConsultores<=tiempoPrimeraSCPrereservas) {
         return tiempoPrimeraSCConsultores;
     }
 
@@ -479,6 +477,7 @@ long long int conseguirUltimaSalidaSC(){
     }
     while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoUltimaSCAnulaciones = primerInstanteSC(nextLine);
+
     }
     fclose(fp);
 
@@ -489,6 +488,7 @@ long long int conseguirUltimaSalidaSC(){
     }
     while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoUltimaSCPrereservas = primerInstanteSC(nextLine);
+
     }
     fclose(fp);
 
@@ -496,7 +496,7 @@ long long int conseguirUltimaSalidaSC(){
     if (fp == NULL) {
         perror("File error 8");
     }
-    if ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
+    while ((fgets(nextLine, LINE_LIMIT, fp)) != NULL) {
         tiempoUltimaSCConsultores = primerInstanteSC(nextLine);
     }
     fclose(fp);
@@ -509,7 +509,8 @@ long long int conseguirUltimaSalidaSC(){
     }
     else if(tiempoUltimaSCPrereservas >= tiempoUltimaSCAnulaciones && tiempoUltimaSCPrereservas>=tiempoUltimaSCPagos && tiempoUltimaSCPrereservas>=tiempoUltimaSCConsultores){
         return tiempoUltimaSCPrereservas;
-    }else {
+    }
+    else if(tiempoUltimaSCConsultores >= tiempoUltimaSCAnulaciones && tiempoUltimaSCConsultores>=tiempoUltimaSCPagos && tiempoUltimaSCConsultores>=tiempoUltimaSCPrereservas){
         return tiempoUltimaSCConsultores;
     }
 
