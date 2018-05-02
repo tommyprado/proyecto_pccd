@@ -30,14 +30,16 @@ int main(int argc, char *argv[]){
         updateRequestID(originTicket.requestID);
         char ticketString[100];
         ticketToString(ticketString, originTicket);
-        if (originTicket.priority == CONSULTORES &&
-            sharedMemoryPointer->inSC == true &&
-            sharedMemoryPointer->competitorTicket.priority == CONSULTORES) {
+        if(!nodeHasProcesses(sharedMemoryPointer)) {
             sendReply(originTicket, nodeID);
-        } else if(!nodeHasProcesses(sharedMemoryPointer) ||
-                  (!sharedMemoryPointer->inSC && (compTickets(originTicket, sharedMemoryPointer->competitorTicket) == -1))) { // competitorTicket > originTicket?
+        }
+        else if (!sharedMemoryPointer->inSC && (compTickets(originTicket, sharedMemoryPointer->competitorTicket) == -1)) { // originTicket < competitorTicket?
             sendReply(originTicket, nodeID);
             sharedMemoryPointer->competitorTicket.priority = NONE;
+        }
+        else if (originTicket.priority == CONSULTORES &&
+                 sharedMemoryPointer->competitorTicket.priority == CONSULTORES) {
+            sendReply(originTicket, nodeID);
         }
         else{
             saveRequest(originTicket);

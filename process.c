@@ -67,6 +67,10 @@ int main(int argc, char *argv[]){
             sem_wait(&sharedMemoryPointer->nodeStatusSem);
         }
         mTicket = createTicket();
+        if (priority == CONSULTORES && sharedMemoryPointer->concurrentConsultCount > 1) {
+            sem_post(&sharedMemoryPointer->nodeStatusSem);
+            break;
+        }
         sharedMemoryPointer->competitorTicket = mTicket;
 
         ticketToString(ticketString1, mTicket);
