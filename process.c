@@ -55,16 +55,12 @@ int main(int argc, char *argv[]){
         sem_wait(&sharedMemoryPointer->nodeStatusSem);
         reset = false;
         if (!nodeHasProcesses(sharedMemoryPointer)) {
-            printf("%sNodo vacío, entrando con prioridad %d\n", processTag, priority);
-
             addProcessToCount(sharedMemoryPointer, priority);
         }
         else if (priority == CONSULTORES && sharedMemoryPointer->consultorsInSC > 0) {
-            printf("%sProcesos consultores en SC. Entrando...\n", processTag);
             addProcessToCount(sharedMemoryPointer, priority);
         }
         else if (&sharedMemoryPointer->inSC || priority >= sharedMemoryPointer->competitorTicket.priority) {
-            printf("%sPrioridad %d con pid %d ya en juego, esperando...\n", processTag, priority, getpid());
             addProcessToCount(sharedMemoryPointer, priority);
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             waitByPriority(sharedMemoryPointer, priority);
@@ -90,7 +86,6 @@ int main(int argc, char *argv[]){
             sem_wait(&sharedMemoryPointer->nodeStatusSem);
             if (compTickets(mTicket, message.ticket) != 0) {
                 ticketToString(ticketString2, message.ticket);
-                printf("%sReply %s ya no válida para %s\n", processTag, ticketString2, mTicketString);
                 continue;
             }
             printf("%sRecibido el reply número %d del nodo %i para %s\n", processTag, replyCont + 1, message.origin, ticketString1);
@@ -98,7 +93,7 @@ int main(int argc, char *argv[]){
                 compTickets(sharedMemoryPointer->competitorTicket, mTicket) != 0) {
                 char aux[200];
                 ticketToString(aux, sharedMemoryPointer->competitorTicket);
-                printf("%sReset debido a %s en %s\n",processTag, aux, mTicketString);
+                printf("%sEl ticket %s ya no es válido\n",processTag, ticketString1);
                 wakeNextInLine();
                 removeProcessFromCount(sharedMemoryPointer, priority);
                 reset = true;
@@ -107,7 +102,6 @@ int main(int argc, char *argv[]){
             replyCont++;
         }
         if (reset) {
-            printf("%sReset para %s\n", processTag, mTicketString);
             sem_post(&sharedMemoryPointer->nodeStatusSem);
             continue;
         }
@@ -131,25 +125,16 @@ int main(int argc, char *argv[]){
     if (priority == CONSULTORES && sharedMemoryPointer->consultorsInSC > 1) {
         sharedMemoryPointer->consultorsInSC = sharedMemoryPointer->consultorsInSC - 1;
         removeProcessFromCount(sharedMemoryPointer, priority);
-        printf("%sConsultor %s saliendo. Quedan %d en SC\n", processTag, mTicketString, sharedMemoryPointer->consultorsInSC);
     } else if (priority != CONSULTORES || (priority == CONSULTORES && sharedMemoryPointer->consultorsInSC == 1)) {
         if (priority == CONSULTORES) {
-            printf("%sUltimo consultor ha salido %s\n", processTag, mTicketString);
             sharedMemoryPointer->consultorsInSC = sharedMemoryPointer->consultorsInSC - 1;
         }
         sharedMemoryPointer->inSC = false;
         removeProcessFromCount(sharedMemoryPointer, priority);
         resetCompetitor(sharedMemoryPointer);
         if (nodeHasProcesses(sharedMemoryPointer)){
-            printf("%sQuedan %d pagos, %d anulaciones, %d reservas y %d consultores\n",
-                   processTag,
-                   sharedMemoryPointer->nextPagosCount,
-                   sharedMemoryPointer->nextAnulacionesCount,
-                   sharedMemoryPointer->nextReservasCount,
-                   sharedMemoryPointer->nextConsultoresCount);
             wakeNextInLine();
         } else {
-            printf("%sNo hay procesos, mandando %d replies\n", processTag, sharedMemoryPointer->pendingRequestsCount);
             replyAll();
         }
     }
@@ -199,7 +184,7 @@ void replyPendingRequestsConsult() {
         ticket pendingRequest = sharedMemoryPointer->pendingRequests[i];
         ticketToString(aux, pendingRequest);
         if (pendingRequest.priority == CONSULTORES) {
-            printf("%sEnviando reply %s\n", processTag, aux);
+            printf("%sEnviando reply del nodo %i para %s\n", processTag, nodeID, aux);
             sendReply(pendingRequest, nodeID);
         } else {
             printf("%sGuardando en nuevo array %s\n", processTag, aux);
