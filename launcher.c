@@ -68,6 +68,7 @@ gnuPlotEntry *searchGnuEntry(gnuPlotEntry *pStruct, int pid) ;
 
 int main(int argc, char *argv[]) {
     system("ipcrm --all && killall Process && killall Receptor");
+    system("killall gnuplot_x11");
     system("rm pagos.dat");
     system("rm anulaciones.dat");
     system("rm prereservas.dat");
@@ -119,6 +120,7 @@ int main(int argc, char *argv[]) {
     escribirTiemposProcesos(tiempoSCPagos,tiempoSCAnulaciones,tiempoSCPrereservas,tiempoUltimaSC-tiempoPrimeraSC-tiempoTotalSC);
     escribirTiemposProcesosTiempoTotal(tiempoSCPagos,tiempoSCAnulaciones,tiempoSCPrereservas,tiempoSCConsultores,tiempoUltimaSC-tiempoPrimeraSC);
     pintar();
+    system("killall gnuplot_qt");
 
 }
 

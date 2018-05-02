@@ -2,6 +2,10 @@
 clear
 reset
 
+ reset
+  set term png size 800,600
+  set output "porcentaje.png"
+  set term x11
 
 # Make the x axis labels easier to read.
 # Select histogram data

@@ -1,4 +1,9 @@
 #
+ reset
+  set term png size 800,600
+  set output "proceso.png"
+  set term x11
+
 set title "SC por proceso"
 
 

@@ -2,10 +2,10 @@ clear
 reset
 unset key
 
-# DESCOMENTAR PARA GRAFICAS DE MUCHOS PUNTOS !
-# reset
-#  set term png
-#  set output "data.png"
+ reset
+  set term png size 800,600
+  set output "data.png"
+  set term x11
 
 # Make the x axis labels easier to read.
 # Select histogram data
