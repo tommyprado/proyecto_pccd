@@ -372,6 +372,9 @@ gnuPlotEntry *searchGnuEntry(gnuPlotEntry *firstEntry, int pid) {
 }
 
 gnuPlotEntry *createPlotEntry(launcherMessage message) {
+    if (message.ticket.priority == NONE) {
+        printf("La jodimos\n");
+    }
     gnuPlotEntry *entry;
     entry = malloc(sizeof(gnuPlotEntry));
     entry->priority = message.ticket.priority;

@@ -55,7 +55,10 @@ void writeEntry(gnuPlotEntry *entry){
         case CONSULTORES:
             nombreFichero = DOC_CONSULTORES;
             break;
-        default:break;
+        default:
+            // TODO: Arreglar tema del 4
+            nombreFichero = DOC_CONSULTORES;
+            break;
     }
     FILE * fileSC = fopen(nombreFichero, "a");
     fprintf(fileSC, "%lli 1 %i\n", entry->enterTime, entry->pid);
